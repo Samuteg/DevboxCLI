@@ -47,10 +47,10 @@ func initConfig() {
 		viper.AddConfigPath(home)
 		viper.AddConfigPath(".") // Procura também na pasta atual
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".meu-dev")
+		viper.SetConfigName(".devbox")
 	}
 
-	viper.AutomaticEnv() // Lê variáveis de ambiente (ex: MEU_DEV_TOKEN)
+	viper.AutomaticEnv() // Lê variáveis de ambiente (ex: DEV_TOKEN)
 
 	if err := viper.ReadInConfig(); err == nil {
 		// fmt.Println("Usando config:", viper.ConfigFileUsed()) // Debug opcional
