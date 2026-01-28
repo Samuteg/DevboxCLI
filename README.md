@@ -1,40 +1,82 @@
-📦 DevBox CLI
-The Ultimate Developer Swiss-Army-Knife
-DevBox is a high-performance Command Line Interface (CLI) built in Go designed to eliminate the friction of daily development workflows. From scaffolding clean architectures to enforcing git best practices, DevBox automates the "boring stuff" so you can focus on writing code.
+# 📦 DevBox CLI
 
-🛠 Built With
-Go (Golang): For lightning-fast execution and a single static binary.
+<p align="center">
+  <img src="https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go" />
+  <img src="https://img.shields.io/badge/Cobra-v1.8.0-blue?style=for-the-badge" alt="Cobra" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License" />
+</p>
 
-Cobra: The industry-standard library for modern CLI applications.
+**DevBox** é uma CLI de alta performance desenvolvida em Go, projetada para automatizar fluxos de trabalho repetitivos, garantir padrões de commit e diagnosticar a saúde do seu ambiente de desenvolvimento.
 
-Viper: Seamless configuration management (YAML/JSON/ENV).
+---
 
-Go-Git: Direct Git integration for repository manipulation.
+## 🎨 O Projeto
 
-PromptUI: Interactive terminal prompts for a better user experience.
+```text
+  _____  ______      __ ____   ____ __   __
+ |  __ \|  ____\ \    / /  _ \ / __ \\ \ / /
+ | |  | | |__   \ \  / /| |_) | |  | |\ V / 
+ | |  | |  __|   \ \/ / |  _ <| |  | | > <  
+ | |__| | |____   \  /  | |_) | |__| |/ . \ 
+ |_____/|______|   \/   |____/ \____//_/ \_\
 
-🚀 Key Features
-1. Project Scaffolding (devbox init)
-Instantly bootstrap projects with production-ready structures:
+      >>> Sua Toolbox de Automação Pessoal <<<
+🚀 Funcionalidades
+🩺 System Doctor
+Verifica instantaneamente se as dependências essenciais (Git, Docker, Go, Node) estão instaladas e configuradas no seu PATH.
 
---frontend: Generates a Vite project with optimized presets.
-
---backend: Sets up a Go Clean Architecture layout (cmd/, internal/, pkg/) including a docker-compose.yml for database services and a pre-configured .env.
-
-2. Smart Sync (devbox save)
-A unified command to add, commit, and push changes:
-
-Conventional Commits Enforcement: Validates messages against standard types (feat, fix, chore, etc.).
-
-Interactive Wizard: A devbox commit mode that guides you through building the perfect commit message.
-
-3. Safety Guardrails
-Branch Protection: Prevents accidental commits to main, master, or production branches unless the --force flag is explicitly used.
-
-📥 Installation
 Bash
-# Clone the repository
-git clone https://github.com/youruser/devbox
+devbox doctor
+🛡️ Smart Save (Git Flow)
+Commita e envia suas alterações com segurança.
 
-# Install globally
+Proteção de Branch: Impede commits diretos na main ou master.
+
+Validação: Garante que as mensagens de commit sigam padrões.
+
+Bash
+devbox save "feat: nova funcionalidade incrível"
+🧹 Workspace Cleanup
+Remove branches locais que já foram mergeadas ou que não existem mais no repositório remoto, mantendo seu ambiente limpo.
+
+Bash
+devbox cleanup --dry-run
+🔄 Self-Update
+Mantenha sua ferramenta sempre atualizada com um único comando, baixando a versão mais recente diretamente do repositório.
+
+Bash
+devbox update
+🛠️ Instalação
+Certifique-se de que o diretório $GOPATH/bin está no seu PATH.
+
+Bash
+# Clone o repositório
+git clone [https://github.com/seu-usuario/devbox.git](https://github.com/seu-usuario/devbox.git)
+
+# Entre na pasta
+cd devbox
+
+# Instale globalmente
 go install .
+⚙️ Configuração
+A DevBox utiliza um arquivo de configuração yaml para personalizar o comportamento:
+
+Crie o arquivo em ~/.devbox.yaml:
+
+YAML
+repo: "[github.com/seu-usuario/devbox](https://github.com/seu-usuario/devbox)"
+protected_branches:
+  - "main"
+  - "master"
+  - "production"
+workspace: "~/projects"
+🏗️ Tecnologias Utilizadas
+Go - Linguagem base.
+
+Cobra - Framework para interfaces CLI.
+
+Viper - Gerenciamento de configuração.
+
+Go-Git - Manipulação nativa de repositórios Git.
+
+Desenvolvido por Seu Nome
