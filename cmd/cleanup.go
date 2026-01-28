@@ -79,5 +79,5 @@ var cleanupCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(cleanupCmd)
-	cleanupCmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "Apenas lista as branches sem deletá-las")
+	cleanupCmd.Flags().BoolVarP(&dryRun, "dry-run", "c", false, "Apenas lista as branches sem deletá-las")
 }

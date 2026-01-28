@@ -3,6 +3,7 @@ module github.com/Samuteg/DevboxCLI
 go 1.24.4
 
 require (
+	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/go-git/go-git/v5 v5.16.4
 	github.com/manifoldco/promptui v0.9.0
 	github.com/spf13/cobra v1.10.2
