@@ -1,35 +1,58 @@
-/*
-Copyright © 2026 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
+var cfgFile string
+
+// rootCmd representa o comando base quando chamado sem subcomandos
 var rootCmd = &cobra.Command{
-	Use:   "DevboxCLI",
-	Short: "A powerful CLI tool built with Cobra",
-	Long:  `My CLI is a automation for devs to create your projects`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Use:   "dev",
+	Short: "Sua caixa de ferramentas pessoal para desenvolvimento",
+	Long:  `Uma CLI para automatizar o setup de projetos, git e tarefas do dia a dia.`,
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-var verbose bool
-
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	cobra.OnInitialize(initConfig)
+
+	// Permite passar --config manualmente
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "arquivo de config (padrão é $HOME/.meu-dev.yaml)")
+
+	// Flag global de exemplo
+	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "saída detalhada")
+}
+
+func initConfig() {
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		// Procura na home do usuário
+		home, err := os.UserHomeDir()
+		if err != nil {
+			cobra.CheckErr(err)
+		}
+
+		viper.AddConfigPath(home)
+		viper.AddConfigPath(".") // Procura também na pasta atual
+		viper.SetConfigType("yaml")
+		viper.SetConfigName(".meu-dev")
+	}
+
+	viper.AutomaticEnv() // Lê variáveis de ambiente (ex: MEU_DEV_TOKEN)
+
+	if err := viper.ReadInConfig(); err == nil {
+		// fmt.Println("Usando config:", viper.ConfigFileUsed()) // Debug opcional
+	}
 }
