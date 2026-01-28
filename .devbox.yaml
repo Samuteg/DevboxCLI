@@ -1,0 +1,7 @@
+workspace: "/home/voce/projetos"
+repo: "github.com/Samuteg/DevboxCLI"
+protected_branches:
+- "main"
+- "master"
+- "production"
+- "homolog"
