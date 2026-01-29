@@ -1,200 +1,161 @@
 package cmd
 
 import (
+	"embed"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
+	"strings"
 
-	"github.com/go-git/go-git/v5"
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
 
-var (
-	isFrontend bool
-	isBackend  bool // Nova flag
+// 1. Constantes para garantir que o texto do menu seja idêntico ao do switch
+const (
+	OptGo   = "Go (Clean Architecture)"
+	OptNode = "Node.js (Express + TS)"
+	OptPy   = "Python (FastAPI)"
 )
 
+// 2. Embutindo a pasta de templates que está em cmd/templates
+//
+//go:embed templates/*
+var templatesFS embed.FS
+
 var initCmd = &cobra.Command{
-	Use:   "init [nome-do-projeto]",
-	Short: "Inicializa um novo projeto",
-	Long:  `Cria estrutura de pastas, git, .env e templates para Frontend (Vite) ou Backend (Go Standard Layout).`,
-	Args:  cobra.ExactArgs(1),
+	Use:   "init",
+	Short: "Cria um novo projeto a partir de um template interativo",
 	Run: func(cmd *cobra.Command, args []string) {
-		projectName := args[0]
+		projectName := promptProjectName()
+		projectType := promptType()
 
-		// 1. Criar Diretório Raiz
-		if err := os.MkdirAll(projectName, 0755); err != nil {
-			fmt.Printf("❌ Erro ao criar pasta raiz: %v\n", err)
-			return
-		}
-		fmt.Printf("📁 Pasta '%s' criada.\n", projectName)
-
-		// 2. Inicializar Git
-		_, err := git.PlainInit(projectName, false)
-		if err != nil {
-			// Ignora erro se já existir git, senão avisa
-			if err.Error() != "repository already exists" {
-				fmt.Printf("⚠️  Aviso Git: %v\n", err)
-			}
+		if projectType == "Backend" {
+			language := promptBackendLanguage()
+			generateProject(projectName, language)
 		} else {
-			fmt.Println("g  Git inicializado.")
-		}
-
-		// 3. Criar .env Básico
-		createFile(filepath.Join(projectName, ".env"), "ENV=development\nPORT=8080\nDB_URL=postgres://user:pass@localhost:5432/db")
-
-		// --- LÓGICA DO BACKEND ---
-		if isBackend {
-			setupBackend(projectName)
-		}
-
-		// --- LÓGICA DO FRONTEND ---
-		if isFrontend {
-			setupFrontend(projectName)
-		}
-
-		fmt.Printf("\n✨ Projeto %s finalizado!\n", projectName)
-		if isBackend {
-			fmt.Printf("   Run: cd %s && go run cmd/api/main.go\n", projectName)
+			fmt.Println("🚧 Frontend vindo em breve no DevBox!")
 		}
 	},
 }
 
-func init() {
-	rootCmd.AddCommand(initCmd)
-	initCmd.Flags().BoolVarP(&isFrontend, "frontend", "f", false, "Gera template Frontend (Vite)")
-	initCmd.Flags().BoolVarP(&isBackend, "backend", "b", false, "Gera template Backend (Go Clean Arch)")
-}
+func generateProject(projectName, techOption string) {
+	fmt.Printf("\n🚀 Montando setup para '%s'...\n", projectName)
 
-// --- FUNÇÕES AUXILIARES ---
+	var templateSourceDir string
+	var extraDirs []string // Lista de pastas que DEVEM ser criadas
+	isNode := false
 
-func setupBackend(root string) {
-	fmt.Println("\n🔨 Configurando Backend (Go + Clean Arch)...")
-
-	// 1. Criar Estrutura de Pastas
-	dirs := []string{
-		"cmd/api",
-		"internal/handler",
-		"internal/service",
-		"internal/repository",
-		"pkg/util",
-	}
-
-	for _, dir := range dirs {
-		path := filepath.Join(root, dir)
-		if err := os.MkdirAll(path, 0755); err != nil {
-			fmt.Printf("❌ Erro criando pasta %s: %v\n", dir, err)
-		}
-	}
-
-	// 2. Inicializar go.mod
-	// Supomos que o nome do módulo é o nome do projeto para facilitar
-	goCmd := exec.Command("go", "mod", "init", root) // root aqui serve como module name provisório
-	goCmd.Dir = root
-	if out, err := goCmd.CombinedOutput(); err != nil {
-		fmt.Printf("❌ Erro no go mod init: %s\n", string(out))
-	} else {
-		fmt.Println("📦 go.mod criado.")
-	}
-
-	// 3. Criar main.go
-	mainContent := `package main
-
-import (
-	"fmt"
-	"log"
-	"net/http"
-)
-
-func main() {
-	fmt.Println("🚀 Servidor rodando na porta 8080...")
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("DevBox Backend Running!"))
-	})
-	log.Fatal(http.ListenAndServe(":8080", nil))
-}
-`
-	createFile(filepath.Join(root, "cmd/api", "main.go"), mainContent)
-
-	// 4. Criar .gitignore específico para Go
-	gitIgnore := `# Binaries
-bin/
-*.exe
-*.exe~
-*.dll
-
-# Go
-vendor/
-go.work
-
-# Environment
-.env
-
-# IDE
-.vscode/
-.idea/
-`
-	createFile(filepath.Join(root, ".gitignore"), gitIgnore)
-
-	// 5. Criar docker-compose.yml
-	dockerCompose := `version: '3.8'
-
-services:
-  db:
-    image: postgres:15-alpine
-    restart: always
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: dbname
-    ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data
-
-volumes:
-  db_data:
-`
-	createFile(filepath.Join(root, "docker-compose.yml"), dockerCompose)
-
-	fmt.Println("✅ Estrutura Backend criada com sucesso.")
-}
-
-func setupFrontend(root string) {
-	fmt.Println("\n🎨 Configurando Frontend (Vite)...")
-
-	npmBin := "npm"
-	if runtime.GOOS == "windows" {
-		npmBin = "npm.cmd"
-	}
-
-	// Verifica se npm existe
-	if _, err := exec.LookPath(npmBin); err != nil {
-		fmt.Println("❌ Erro: NPM não encontrado. Pulei a etapa do frontend.")
+	switch techOption {
+	case OptGo:
+		templateSourceDir = "templates/go"
+		// Pastas padrão para Clean Arch
+		extraDirs = []string{"internal/entity", "internal/usecase", "internal/infra/repository", "internal/infra/web"}
+	case OptNode:
+		templateSourceDir = "templates/node"
+		isNode = true
+		// Pastas que você solicitou para o Node
+		extraDirs = []string{"src/models", "src/routes", "src/controllers", "src/middleware", "src/libs"}
+	case OptPy:
+		templateSourceDir = "templates/python"
+	default:
+		fmt.Printf("❌ Erro: Template [%s] não reconhecido.\n", techOption)
 		return
 	}
 
-	// Executa create vite
-	cmd := exec.Command(npmBin, "create", "vite@latest", ".", "--", "--yes")
-	cmd.Dir = root
+	// --- PASSO 1: Criar a pasta raiz ---
+	os.MkdirAll(projectName, 0755)
+
+	// --- PASSO 2: Criar as pastas extras (Garante que existam mesmo se vazias) ---
+	for _, dir := range extraDirs {
+		targetDir := filepath.Join(projectName, dir)
+		os.MkdirAll(targetDir, 0755)
+	}
+
+	// --- PASSO 3: Varrer e copiar arquivos do EMBED ---
+	err := fs.WalkDir(templatesFS, templateSourceDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relPath, _ := filepath.Rel(templateSourceDir, path)
+		if relPath == "." || d.IsDir() {
+			return nil
+		}
+
+		targetName := strings.TrimSuffix(relPath, ".tmpl")
+		targetPath := filepath.Join(projectName, targetName)
+
+		// Garante a pasta pai do arquivo
+		os.MkdirAll(filepath.Dir(targetPath), 0755)
+
+		// Lê e processa o conteúdo
+		content, _ := templatesFS.ReadFile(path)
+		code := strings.ReplaceAll(string(content), "{{PROJECT_NAME}}", projectName)
+
+		fmt.Printf("   📄 Criando arquivo: %s\n", targetName)
+		return os.WriteFile(targetPath, []byte(code), 0644)
+	})
+
+	if err != nil {
+		fmt.Printf("❌ Erro ao gerar arquivos: %v\n", err)
+		return
+	}
+
+	if isNode {
+		runNpmInstall(projectName)
+	}
+
+	fmt.Printf("\n✨ Projeto %s finalizado!\n", projectName)
+}
+
+// --- Funções Auxiliares de UI e Execução ---
+
+func runNpmInstall(projectDir string) {
+	fmt.Println("📦 Instalando dependências Node...")
+	cmd := exec.Command("npm", "install")
+	cmd.Dir = projectDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
 
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("❌ Erro no NPM: %v\n", err)
-	} else {
-		fmt.Println("✅ Frontend configurado.")
+		fmt.Printf("⚠️  Aviso: npm install falhou. Rode manualmente em ./%s\n", projectDir)
 	}
 }
 
-// Função utilitária para escrever arquivos rapidamente
-func createFile(path, content string) {
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
-		fmt.Printf("⚠️ Erro ao escrever %s: %v\n", path, err)
-	} else {
-		// fmt.Printf("📄 %s criado.\n", filepath.Base(path)) // Opcional: logar cada arquivo
+func promptProjectName() string {
+	validate := func(input string) error {
+		if len(input) < 2 {
+			return errors.New("nome muito curto")
+		}
+		return nil
 	}
+	prompt := promptui.Prompt{Label: "📁 Nome do Projeto", Validate: validate}
+	res, _ := prompt.Run()
+	return res
+}
+
+func promptType() string {
+	prompt := promptui.Select{
+		Label: "💻 Tipo de Projeto",
+		Items: []string{"Backend", "Frontend"},
+	}
+	_, res, _ := prompt.Run()
+	return res
+}
+
+func promptBackendLanguage() string {
+	prompt := promptui.Select{
+		Label: "🛠️  Escolha a Stack",
+		Items: []string{OptGo, OptNode, OptPy},
+	}
+	_, res, _ := prompt.Run()
+	return res
+}
+
+func init() {
+	rootCmd.AddCommand(initCmd)
 }
