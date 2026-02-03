@@ -43,7 +43,11 @@ func killUnix(port string) {
 	}
 
 	pid := strings.TrimSpace(string(out))
-
+	validPid := regexp.MustCompile(`^[0-9]+$`)
+	if !validPid.MatchString(pid) {
+		fmt.Printf("❌ Invalid process ID\n")
+		return
+	}
 	// kill -9 para forçar o encerramento
 	cmdKill := exec.Command("kill", "-9", pid)
 	if err := cmdKill.Run(); err != nil {
