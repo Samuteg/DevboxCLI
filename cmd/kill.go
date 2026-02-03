@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -15,6 +16,11 @@ var killCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		port := args[0]
+		validPort := regexp.MustCompile(`^[0-9]+$`)
+		if !validPort.MatchString(port) {
+			fmt.Printf("❌ Invalid port number\n")
+			return
+		}
 		fmt.Printf("🔍 Procurando processo na porta %s...\n", port)
 
 		if runtime.GOOS == "windows" {
