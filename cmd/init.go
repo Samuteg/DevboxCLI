@@ -115,10 +115,20 @@ func handleFrontend(name string, s Stack) {
 // --- Utilitários de Baixo Nível ---
 
 func executeCommand(name string, args interface{}, dir string) {
+	validInput := regexp.MustCompile(`^[a-zA-Z0-9_\-\./\\]+$`)
+	if !validInput.MatchString(name) {
+		fmt.Printf("⚠️ Invalid command name\n")
+		return
+	}
 	var cmd *exec.Cmd
 	switch v := args.(type) {
 	case string:
-		cmd = exec.Command(name, v)
+		if !validInput.MatchString(v) {
+			fmt.Printf("⚠️ Invalid command argument\n")
+			return
+		}
+		parts := strings.Fields(v)
+		cmd = exec.Command(name, parts...)
 	case []string:
 		cmd = exec.Command(name, v...)
 	}
