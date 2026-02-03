@@ -86,7 +86,7 @@ var commitWizardCmd = &cobra.Command{
 		cmdGit := exec.Command("git", "commit", "-m", finalMsg)
 		cmdGit.Stdout = os.Stdout
 		cmdGit.Stderr = os.Stderr
-		if err := cmdGit.Run(); err != nil {
+		if cmdGit.Run(); err != nil {
 			fmt.Println("Erro ao commitar.")
 		} else {
 			fmt.Println("✅ Commit realizado com sucesso!")

@@ -52,7 +52,7 @@ func initConfig() {
 
 	viper.AutomaticEnv() // Lê variáveis de ambiente (ex: DEV_TOKEN)
 
-	if err := viper.ReadInConfig(); err == nil {
+	if viper.ReadInConfig(); err == nil {
 		// fmt.Println("Usando config:", viper.ConfigFileUsed()) // Debug opcional
 	}
 }

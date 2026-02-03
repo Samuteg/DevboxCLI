@@ -53,7 +53,7 @@ func killWindows(port string) {
 	command := fmt.Sprintf("(Get-NetTCPConnection -LocalPort %s).OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force }", port)
 	cmd := exec.Command("powershell", "-Command", command)
 
-	if err := cmd.Run(); err != nil {
+	if cmd.Run(); err != nil {
 		fmt.Printf("⚠️  Não foi possível encontrar ou encerrar processos na porta %s.\n", port)
 	} else {
 		fmt.Printf("✅ Porta %s libertada com sucesso!\n", port)
