@@ -54,5 +54,5 @@ func PrintBanner() {
 /_____/_____/  |___/_____/\____/_/|_|  
                                        `
 	color.Cyan(banner)
-	fmt.Printf("%s %s\n\n", info("v1.0.0"), bold("| Sua caixa de ferramentas de desenvolvimento"))
+	fmt.Printf("%s %s\n\n", info("v0.0.1"), bold("Sua caixa de ferramentas de desenvolvimento"))
 }

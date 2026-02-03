@@ -27,6 +27,7 @@ var doctorCmd = &cobra.Command{
 			{Name: "Docker", Command: "docker", Args: []string{"--version"}},
 			{Name: "Go Compiler", Command: "go", Args: []string{"version"}},
 			{Name: "Node.js", Command: "node", Args: []string{"-v"}},
+			{Name: "Pnpm", Command: "pnpm", Args: []string{"-v"}},
 		}
 
 		allOk := true

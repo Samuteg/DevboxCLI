@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/manifoldco/promptui"
@@ -28,8 +29,8 @@ type Stack struct {
 var stacks = map[string]Stack{
 	"Go (Clean Arch)": {Name: "Go", IsBackend: true, Source: "templates/go", ExtraDirs: []string{"internal/entity", "internal/usecase"}},
 	"Node (Express)":  {Name: "Node", IsBackend: true, Source: "templates/node", RunInstall: true, ExtraDirs: []string{"src/controllers", "src/models"}},
-	"Next.js":         {Name: "Next", IsBackend: false, Source: "npx create-next-app@latest %s --ts --tailwind --eslint"},
-	"Vite":            {Name: "Vite", IsBackend: false, Source: "npm create vite@latest %s"},
+	"Next.js":         {Name: "Next", IsBackend: false, Source: "pnpm create next-app@latest %s"},
+	"Vite":            {Name: "Vite", IsBackend: false, Source: "pnpm create vite@latest %s"},
 }
 
 var initCmd = &cobra.Command{
@@ -39,7 +40,6 @@ var initCmd = &cobra.Command{
 }
 
 func runInit(cmd *cobra.Command, args []string) {
-	PrintBanner()
 	projectName := promptInput("📁 Nome do Projeto", "nome muito curto", 2)
 	projectType := promptSelect("💻 Tipo de Projeto", []string{"Backend", "Frontend"})
 
@@ -60,8 +60,6 @@ func runInit(cmd *cobra.Command, args []string) {
 	}
 }
 
-// --- Handlers Otimizados ---
-
 func handleBackend(name string, s Stack) {
 	// Iniciamos o spinner para dar feedback visual
 	spin := NewSpinner(info("Construindo a estrutura do backend..."))
@@ -72,7 +70,6 @@ func handleBackend(name string, s Stack) {
 		os.MkdirAll(filepath.Join(name, d), 0755)
 	}
 
-	// ... dentro de handleBackend ...
 	walkErr := fs.WalkDir(templatesFS, s.Source, func(path string, d fs.DirEntry, err error) error {
 		// ... lógica ...
 		return nil
@@ -101,9 +98,16 @@ func handleFrontend(name string, s Stack) {
 
 	rawCmd := fmt.Sprintf(s.Source, name)
 	parts := strings.Fields(rawCmd)
+	commandName := parts[0]
 
-	// No frontend não usamos spinner porque o npx/npm costuma ser interativo
-	executeCommand(parts[0], parts[1:], "")
+	// Ajuste para Windows: se for npx ou npm, adiciona .cmd
+	if runtime.GOOS == "windows" {
+		if commandName == "npx" || commandName == "npm" {
+			commandName = commandName + ".cmd"
+		}
+	}
+
+	executeCommand(commandName, parts[1:], "")
 
 	showSuccessBox(name, s.Name)
 }
