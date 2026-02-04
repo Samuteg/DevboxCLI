@@ -1,64 +1,73 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Devbox CLI - Sua caixa de ferramentas no terminal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<div align="center">
+  <br />
+  <h1>📦 Devbox CLI</h1>
+  
+  <p>
+    <strong>Sua caixa de ferramentas definitiva para produtividade no terminal.</strong>
+  </p>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        go: '#00ADD8',
-                        dark: '#1a1b26',
-                        darker: '#16161e',
-                        card: '#24283b',
-                        accent: '#bb9af7'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body { background-color: #1a1b26; color: #a9b1d6; }
-        .gradient-text {
-            background: linear-gradient(to right, #00ADD8, #bb9af7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .code-block {
-            background-color: #16161e;
-            border: 1px solid #414868;
-        }
-    </style>
-</head>
-<body class="antialiased selection:bg-go selection:text-white">
+  <p>
+    <a href="https://go.dev/">
+      <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go Version">
+    </a>
+    <a href="#">
+      <img src="https://img.shields.io/badge/Platform-Win%20%7C%20Linux-brightgreen?style=for-the-badge" alt="Platform">
+    </a>
+    <a href="LICENSE">
+      <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License">
+    </a>
+  </p>
 
-    <header class="max-w-5xl mx-auto px-6 py-20 text-center">
-        <div class="mb-6 flex justify-center gap-2">
-            <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go" alt="Go Version">
-            <img src="https://img.shields.io/badge/Platform-Win%20%7C%20Linux-brightgreen" alt="Platform">
-            <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
-        </div>
-        
-        <h1 class="text-6xl font-bold mb-4 text-white tracking-tight">
-            📦 <span class="gradient-text">Devbox CLI</span>
-        </h1>
-        <p class="text-xl mb-10 max-w-2xl mx-auto text-gray-400">
-            Acelere seu fluxo de trabalho combinando a robustez do <span class="text-go font-bold">Go</span> com uma interface interativa moderna.
-        </p>
+  <br />
 
-        <div class="flex justify-center gap-4">
-            <a href="#install" class="bg-go hover:bg-cyan-600 text-white font-bold py-3 px-8 rounded-full transition transform hover:scale-105 shadow-lg shadow-cyan-500/20">
-                <i class="fas fa-download mr-2"></i> Instalar Agora
-            </a>
-            <a href="https://github.com/seu-usuario/devbox" target="_blank" class="bg-card hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-full transition border border-gray-600">
-                <i class="fab fa
+  <img src="https://via.placeholder.com/800x400/1a1b26/00ADD8?text=Place+Your+TUI+Screenshot+Here" alt="Devbox Preview" width="100%" style="border-radius: 10px; border: 1px solid #2e303e;">
+  
+  <br />
+  <br />
+</div>
+
+<h2 align="center">✨ Funcionalidades Principais</h2>
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3 align="center">🖥️ Dashboard TUI</h3>
+      <p align="center">
+        Interface interativa baseada em <strong>Bubble Tea</strong>. Navegue com as setas do teclado, sem necessidade de decorar comandos.
+      </p>
+    </td>
+    <td width="50%" valign="top">
+      <h3 align="center">🚀 Project Init</h3>
+      <p align="center">
+        Crie esqueletos prontos para produção:
+        <br>
+        <code>Go Clean Arch</code> • <code>Node API</code> • <code>React</code>
+      </p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3 align="center">💀 Kill Port</h3>
+      <p align="center">
+        Acabe com o erro <code>EADDRINUSE</code>.
+        <br>
+        Mata processos travados na porta 3000 (ou qualquer outra) no Windows e Linux.
+      </p>
+    </td>
+    <td width="50%" valign="top">
+      <h3 align="center">🧹 Smart Cleanup</h3>
+      <p align="center">
+        Libere espaço deletando <code>node_modules</code> e caches de build de forma paralela e ultra-rápida.
+      </p>
+    </td>
+  </tr>
+</table>
+
+<br />
+
+<div align="center">
+  <h2>📥 Instalação Rápida</h2>
+  <code>go install github.com/seu-usuario/devbox@latest</code>
+</div>
+
+<hr />
