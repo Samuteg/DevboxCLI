@@ -1,82 +1,64 @@
-# 📦 DevBox CLI
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devbox CLI - Sua caixa de ferramentas no terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go" />
-  <img src="https://img.shields.io/badge/Cobra-v1.8.0-blue?style=for-the-badge" alt="Cobra" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License" />
-</p>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        go: '#00ADD8',
+                        dark: '#1a1b26',
+                        darker: '#16161e',
+                        card: '#24283b',
+                        accent: '#bb9af7'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #1a1b26; color: #a9b1d6; }
+        .gradient-text {
+            background: linear-gradient(to right, #00ADD8, #bb9af7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .code-block {
+            background-color: #16161e;
+            border: 1px solid #414868;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-go selection:text-white">
 
-**DevBox** é uma CLI de alta performance desenvolvida em Go, projetada para automatizar fluxos de trabalho repetitivos, garantir padrões de commit e diagnosticar a saúde do seu ambiente de desenvolvimento.
+    <header class="max-w-5xl mx-auto px-6 py-20 text-center">
+        <div class="mb-6 flex justify-center gap-2">
+            <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go" alt="Go Version">
+            <img src="https://img.shields.io/badge/Platform-Win%20%7C%20Linux-brightgreen" alt="Platform">
+            <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
+        </div>
+        
+        <h1 class="text-6xl font-bold mb-4 text-white tracking-tight">
+            📦 <span class="gradient-text">Devbox CLI</span>
+        </h1>
+        <p class="text-xl mb-10 max-w-2xl mx-auto text-gray-400">
+            Acelere seu fluxo de trabalho combinando a robustez do <span class="text-go font-bold">Go</span> com uma interface interativa moderna.
+        </p>
 
----
-
-## 🎨 O Projeto
-
-```text
-  _____  ______      __ ____   ____ __   __
- |  __ \|  ____\ \    / /  _ \ / __ \\ \ / /
- | |  | | |__   \ \  / /| |_) | |  | |\ V / 
- | |  | |  __|   \ \/ / |  _ <| |  | | > <  
- | |__| | |____   \  /  | |_) | |__| |/ . \ 
- |_____/|______|   \/   |____/ \____//_/ \_\
-
-      >>> Sua Toolbox de Automação Pessoal <<<
-🚀 Funcionalidades
-🩺 System Doctor
-Verifica instantaneamente se as dependências essenciais (Git, Docker, Go, Node) estão instaladas e configuradas no seu PATH.
-
-Bash
-devbox doctor
-🛡️ Smart Save (Git Flow)
-Commita e envia suas alterações com segurança.
-
-Proteção de Branch: Impede commits diretos na main ou master.
-
-Validação: Garante que as mensagens de commit sigam padrões.
-
-Bash
-devbox save "feat: nova funcionalidade incrível"
-🧹 Workspace Cleanup
-Remove branches locais que já foram mergeadas ou que não existem mais no repositório remoto, mantendo seu ambiente limpo.
-
-Bash
-devbox cleanup --dry-run
-🔄 Self-Update
-Mantenha sua ferramenta sempre atualizada com um único comando, baixando a versão mais recente diretamente do repositório.
-
-Bash
-devbox update
-🛠️ Instalação
-Certifique-se de que o diretório $GOPATH/bin está no seu PATH.
-
-Bash
-# Clone o repositório
-git clone [https://github.com/seu-usuario/devbox.git](https://github.com/seu-usuario/devbox.git)
-
-# Entre na pasta
-cd devbox
-
-# Instale globalmente
-go install .
-⚙️ Configuração
-A DevBox utiliza um arquivo de configuração yaml para personalizar o comportamento:
-
-Crie o arquivo em ~/.devbox.yaml:
-
-YAML
-repo: "[github.com/seu-usuario/devbox](https://github.com/seu-usuario/devbox)"
-protected_branches:
-  - "main"
-  - "master"
-  - "production"
-workspace: "~/projects"
-🏗️ Tecnologias Utilizadas
-Go - Linguagem base.
-
-Cobra - Framework para interfaces CLI.
-
-Viper - Gerenciamento de configuração.
-
-Go-Git - Manipulação nativa de repositórios Git.
-
-Desenvolvido por Seu Nome
+        <div class="flex justify-center gap-4">
+            <a href="#install" class="bg-go hover:bg-cyan-600 text-white font-bold py-3 px-8 rounded-full transition transform hover:scale-105 shadow-lg shadow-cyan-500/20">
+                <i class="fas fa-download mr-2"></i> Instalar Agora
+            </a>
+            <a href="https://github.com/seu-usuario/devbox" target="_blank" class="bg-card hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-full transition border border-gray-600">
+                <i class="fab fa
