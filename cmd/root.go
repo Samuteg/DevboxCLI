@@ -12,7 +12,7 @@ var cfgFile string
 
 // rootCmd representa o comando base quando chamado sem subcomandos
 var rootCmd = &cobra.Command{
-	Use:   "DevboxCLI",
+	Use:   "devbox",
 	Short: "Sua caixa de ferramentas pessoal para desenvolvimento",
 	Long:  `Uma CLI para automatizar o setup de projetos, git e tarefas do dia a dia.`,
 }
@@ -52,7 +52,7 @@ func initConfig() {
 
 	viper.AutomaticEnv() // Lê variáveis de ambiente (ex: DEV_TOKEN)
 
-	if viper.ReadInConfig(); err == nil {
+	if viper.ReadInConfig(); errColor == nil {
 		// fmt.Println("Usando config:", viper.ConfigFileUsed()) // Debug opcional
 	}
 }

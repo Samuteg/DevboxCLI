@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -79,14 +80,14 @@ func handleBackend(name string, s Stack) {
 
 	if walkErr != nil {
 		// Agora 'err' aqui se refere à função de cor do ui_utils.go
-		fmt.Printf("%s %v\n", err("❌ Erro ao gerar templates:"), walkErr)
+		fmt.Printf("%s %v\n", errColor("❌ Erro ao gerar templates:"), walkErr)
 		return
 	}
 
 	if s.RunInstall {
 		installSpin := NewSpinner(info("Instalando dependências (npm install)..."))
 		installSpin.Start()
-		executeCommandSilent("npm", []string{"install"}, name) // Versão "silenciosa" para não quebrar o spinner
+		ExecuteCommandSilent("npm", []string{"install"}, name) // Versão "silenciosa" para não quebrar o spinner
 		installSpin.Stop()
 	}
 
@@ -107,14 +108,14 @@ func handleFrontend(name string, s Stack) {
 		}
 	}
 
-	executeCommand(commandName, parts[1:], "")
+	ExecuteCommand(commandName, parts[1:], "")
 
 	showSuccessBox(name, s.Name)
 }
 
 // --- Utilitários de Baixo Nível ---
 
-func executeCommand(name string, args interface{}, dir string) {
+func ExecuteCommand(name string, args interface{}, dir string) {
 	validInput := regexp.MustCompile(`^[a-zA-Z0-9_\-\./\\]+$`)
 	if !validInput.MatchString(name) {
 		fmt.Printf("⚠️ Invalid command name\n")
