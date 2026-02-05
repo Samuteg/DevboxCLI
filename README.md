@@ -64,7 +64,7 @@ A DevBox utiliza um arquivo de configuração yaml para personalizar o comportam
 Crie o arquivo em ~/.devbox.yaml:
 
 YAML
-repo: "[github.com/seu-usuario/devbox](https://github.com/seu-usuario/devbox)"
+repo: "[github.com/samuteg/DevboxCLI](https://github.com/samuteg/DevboxCLI)"
 protected_branches:
   - "main"
   - "master"
@@ -79,4 +79,4 @@ Viper - Gerenciamento de configuração.
 
 Go-Git - Manipulação nativa de repositórios Git.
 
-Desenvolvido por Seu Nome
+Desenvolvido por Samuel Neves
