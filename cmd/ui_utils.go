@@ -28,24 +28,26 @@ const (
 	IconStep    = "➜"
 )
 
+const stringHandler = "%s %s\n"
+
 // LogSuccess: Imprime uma mensagem de sucesso padronizada com ícone
 func LogSuccess(message string) {
-	fmt.Printf("%s %s\n", success(IconSuccess), message)
+	fmt.Printf(stringHandler, success(IconSuccess), message)
 }
 
 // LogError: Imprime erro padronizado
 func LogError(message string) {
-	fmt.Printf("%s %s\n", errColor(IconError), errColor(message))
+	fmt.Printf(stringHandler, errColor(IconError), errColor(message))
 }
 
 // LogInfo: Imprime informação padronizada
 func LogInfo(message string) {
-	fmt.Printf("%s %s\n", info(IconInfo), message)
+	fmt.Printf(stringHandler, info(IconInfo), message)
 }
 
 // LogWarning: Imprime aviso
 func LogWarning(message string) {
-	fmt.Printf("%s %s\n", warning("!"), warning(message))
+	fmt.Printf(stringHandler, warning("!"), warning(message))
 }
 
 // --- SPINNER & EXECUÇÃO ---
