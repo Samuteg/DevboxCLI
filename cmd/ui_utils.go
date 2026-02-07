@@ -9,14 +9,11 @@ import (
 	"github.com/fatih/color"
 )
 
-// --- COMPATIBILIDADE (Mantém seu código antigo funcionando) ---
 var (
-	// Estas variáveis existiam no seu código antigo.
-	// Eu as mantive aqui para que arquivos como root.go ou init.go não quebrem.
 	info     = color.New(color.FgCyan).SprintFunc()
 	success  = color.New(color.FgGreen).SprintFunc()
 	warning  = color.New(color.FgYellow).SprintFunc()
-	errColor = color.New(color.FgRed).SprintFunc() // Renomeei levemente para evitar conflito com tipo error
+	errColor = color.New(color.FgRed).SprintFunc()
 	bold     = color.New(color.Bold).SprintFunc()
 )
 
@@ -62,18 +59,14 @@ func NewSpinner(message string) *spinner.Spinner {
 }
 
 // ExecuteCommandSilent roda comando "escondido".
-// Mudei para Exportado (Letra Maiúscula) e retornando erro.
-// Se seu código antigo chama "executeCommandSilent" (minúscula), você precisará mudar lá.
 func ExecuteCommandSilent(name string, args []string, dir string) error {
 	cmd := exec.Command(name, args...)
 	cmd.Dir = dir
 	return cmd.Run()
 }
 
-// showSuccessBox mantido com letra minúscula se seu init.go o chama assim,
-// mas recomendo usar a versão nova ShowSuccessBox abaixo para projetos futuros.
 func showSuccessBox(projectName, stack string) {
-	ShowSuccessBox(projectName, stack) // Apenas repassa para a nova
+	ShowSuccessBox(projectName, stack)
 }
 
 // ShowSuccessBox (Versão Nova e Melhorada)

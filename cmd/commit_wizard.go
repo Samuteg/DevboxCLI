@@ -10,7 +10,7 @@ import (
 )
 
 var commitWizardCmd = &cobra.Command{
-	Use:   "commit",
+	Use:   "commit_wizard",
 	Short: "Assistente interativo para Conventional Commits",
 	Run: func(cmd *cobra.Command, args []string) {
 
@@ -38,9 +38,7 @@ var commitWizardCmd = &cobra.Command{
 		commitType := result[:4]
 		if result[:5] == "style" {
 			commitType = "style"
-		} // ajuste manual rápido ou use split string
-		// Uma forma melhor de pegar o tipo é dar split no espaço:
-		// commitType = strings.Split(result, " ")[0]
+		}
 
 		// Passo 2: Digitar o Escopo (Opcional)
 		promptScope := promptui.Prompt{
@@ -90,7 +88,6 @@ var commitWizardCmd = &cobra.Command{
 			fmt.Println("Erro ao commitar.")
 		} else {
 			fmt.Println("✅ Commit realizado com sucesso!")
-			// Opcional: Perguntar se quer dar push
 		}
 	},
 }

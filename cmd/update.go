@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Defina a versão atual da sua CLI aqui
+// versão atual da CLI aqui
 const version = "0.0.2"
 
 var updateCmd = &cobra.Command{
@@ -31,8 +31,7 @@ func updateCLI() {
 	defer s.Stop()
 
 	// 2. Verifica a versão mais recente
-	// IMPORTANTE: Troque "seu-usuario/devbox" pelo seu repositório real
-	latest, found, err := selfupdate.DetectLatest("samuteg/DevboxCLI")
+	latest, found, err := selfupdate.DetectLatest("Samuteg/DevboxCLI")
 	if err != nil {
 		s.Stop()
 		LogError(fmt.Sprintf("Erro ao verificar atualizações: %v", err))

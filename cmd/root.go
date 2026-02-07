@@ -10,7 +10,6 @@ import (
 
 var cfgFile string
 
-// rootCmd representa o comando base quando chamado sem subcomandos
 var rootCmd = &cobra.Command{
 	Use:   "devbox",
 	Short: "Sua caixa de ferramentas pessoal para desenvolvimento",

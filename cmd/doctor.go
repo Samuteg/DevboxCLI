@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Estrutura para organizar os checks
 type Dependency struct {
 	Name    string
 	Command string

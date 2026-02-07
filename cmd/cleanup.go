@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"sync" // Essencial para concorrência
+	"sync"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -31,7 +31,7 @@ var cleanupCmd = &cobra.Command{
 		}
 
 		wg.Wait()
-		s.Stop() // Para o spinner exatamente quando o WaitGroup libera
+		s.Stop()
 
 		duration := time.Since(start)
 		fmt.Printf("%s Limpeza concluída em %v\n", success("✔"), bold(duration))

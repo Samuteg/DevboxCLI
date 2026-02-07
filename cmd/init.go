@@ -18,6 +18,29 @@ import (
 //go:embed templates/*
 var templatesFS embed.FS
 
+var (
+	// Definimos as subpastas separadamente para não poluir o mapa
+	pythonSubDirs = []string{
+		"src/api/routes",
+		"src/api/dependencies",
+		"src/config/settings",
+		"src/models/schemas",
+		"src/models/db",
+		"src/repository/crud",
+		"src/repository/migrations/versions",
+		"src/securities/authorizations",
+		"src/securities/hashing",
+		"src/securities/verifications",
+		"src/utilities/exceptions/http",
+		"src/utilities/formatters",
+		"src/utilities/menssages/exception/http",
+		"tests/end_to_end_tests",
+		"tests/unit_tests",
+		"tests/integration_tests",
+		"tests/security_tests",
+	}
+)
+
 // Definição das Stacks para evitar strings espalhadas
 type Stack struct {
 	Name       string
@@ -28,10 +51,22 @@ type Stack struct {
 }
 
 var stacks = map[string]Stack{
-	"Go (Clean Arch)": {Name: "Go", IsBackend: true, Source: "templates/go", ExtraDirs: []string{"internal/entity", "internal/usecase"}},
-	"Node (Express)":  {Name: "Node", IsBackend: true, Source: "templates/node", RunInstall: true, ExtraDirs: []string{"src/controllers", "src/models"}},
-	"Next.js":         {Name: "Next", IsBackend: false, Source: "pnpm create next-app@latest %s"},
-	"Vite":            {Name: "Vite", IsBackend: false, Source: "pnpm create vite@latest %s"},
+	"Go (Clean Arch)": {
+		Name:      "Go",
+		IsBackend: true,
+		Source:    "templates/go",
+		ExtraDirs: []string{"internal/entity", "internal/usecase"},
+	},
+	"Python (FastAPI)": {
+		Name:      "Python",
+		IsBackend: true,
+		Source:    "templates/python-fastapi",
+		// Aqui usamos o helper para injetar "backend" na frente de tudo
+		ExtraDirs: prefixPaths("backend", pythonSubDirs),
+	},
+	"Node (Js)": {Name: "Node", IsBackend: true, Source: "templates/node", RunInstall: true, ExtraDirs: []string{"src/controllers", "src/models"}},
+	"Next.js":   {Name: "Next", IsBackend: false, Source: "pnpm create next-app@latest %s"},
+	"Vite":      {Name: "Vite", IsBackend: false, Source: "pnpm create vite@latest %s"},
 }
 
 var initCmd = &cobra.Command{
@@ -66,20 +101,56 @@ func handleBackend(name string, s Stack) {
 	spin := NewSpinner(info("Construindo a estrutura do backend..."))
 	spin.Start()
 
+	// Cria a pasta raiz do projeto
 	os.MkdirAll(name, 0755)
+
+	// Cria diretórios extras definidos na struct (opcional, pois o WalkDir cria tb)
 	for _, d := range s.ExtraDirs {
 		os.MkdirAll(filepath.Join(name, d), 0755)
 	}
 
+	// --- AQUI ESTA A CORREÇÃO ---
 	walkErr := fs.WalkDir(templatesFS, s.Source, func(path string, d fs.DirEntry, err error) error {
-		// ... lógica ...
-		return nil
-	})
+		if err != nil {
+			return err
+		}
 
+		// 1. Calcula o caminho relativo (remove 'templates/go' do caminho)
+		// Ex: "templates/go/cmd/main.go.tmpl" vira "cmd/main.go.tmpl"
+		relPath, err := filepath.Rel(s.Source, path)
+		if err != nil {
+			return err
+		}
+
+		// Ignora o próprio diretório raiz (".")
+		if relPath == "." {
+			return nil
+		}
+
+		// 2. Define o caminho final no projeto do usuário
+		targetPath := filepath.Join(name, relPath)
+
+		// 3. Se for diretório, cria no disco e retorna
+		if d.IsDir() {
+			return os.MkdirAll(targetPath, 0755)
+		}
+
+		// 4. Se for arquivo:
+		// A mágica acontece aqui: Remove o .tmpl do nome final se existir
+		finalPath := strings.TrimSuffix(targetPath, ".tmpl")
+
+		// Lê o conteúdo do template embarcado
+		content, err := templatesFS.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		// Escreve o arquivo no disco com o nome correto (sem .tmpl)
+		return os.WriteFile(finalPath, content, 0644)
+	})
 	spin.Stop()
 
 	if walkErr != nil {
-		// Agora 'err' aqui se refere à função de cor do ui_utils.go
 		fmt.Printf("%s %v\n", errColor("❌ Erro ao gerar templates:"), walkErr)
 		return
 	}
@@ -87,7 +158,7 @@ func handleBackend(name string, s Stack) {
 	if s.RunInstall {
 		installSpin := NewSpinner(info("Instalando dependências (npm install)..."))
 		installSpin.Start()
-		ExecuteCommandSilent("npm", []string{"install"}, name) // Versão "silenciosa" para não quebrar o spinner
+		ExecuteCommandSilent("npm", []string{"install"}, name)
 		installSpin.Stop()
 	}
 
@@ -161,6 +232,15 @@ func promptSelect(label string, items []string) string {
 	p := promptui.Select{Label: label, Items: items}
 	_, res, _ := p.Run()
 	return res
+}
+
+// prefixPaths adiciona um prefixo a uma lista de subpastas
+func prefixPaths(prefix string, subs []string) []string {
+	fullPaths := make([]string, len(subs))
+	for i, sub := range subs {
+		fullPaths[i] = filepath.Join(prefix, sub)
+	}
+	return fullPaths
 }
 
 func init() {
