@@ -39,34 +39,83 @@ var (
 		"tests/integration_tests",
 		"tests/security_tests",
 	}
+	golangSubDirs = []string{
+		"cmd/apps",
+		"docs/images",
+		"pkg/conf",
+		"pkg/logger",
+		"pkg/server/auth/acl",
+		"pkg/server/controller",
+		"pkg/server/model",
+		"pkg/server/router/middleware",
+		"pkg/server/storage/cache/local",
+		"pkg/server/storage/cache/redis",
+		"pkg/server/storage/db/mysql",
+	}
 )
 
-// Definição das Stacks para evitar strings espalhadas
+type Variant struct {
+	Name      string
+	Source    string
+	ExtraDirs []string
+}
+
 type Stack struct {
 	Name       string
 	IsBackend  bool
-	Source     string // Nome da pasta no templates/ ou comando npx
+	Source     string
 	ExtraDirs  []string
 	RunInstall bool
+	Variants   []Variant
 }
 
 var stacks = map[string]Stack{
-	"Go (Clean Arch)": {
+	"Node.js": {
+		Name:      "Node",
+		IsBackend: true,
+		// Source padrão (caso não tenha variante, ou base)
+		Source: "templates/node/base",
+		Variants: []Variant{
+			{
+				Name:      "TypeScript (Recomendado)",
+				Source:    "templates/node/ts", // A pasta deve existir
+				ExtraDirs: []string{"src/types", "src/controllers"},
+			},
+			{
+				Name:      "JavaScript",
+				Source:    "templates/node/js",
+				ExtraDirs: []string{"src/controllers"},
+			},
+		},
+		RunInstall: true,
+	},
+	"Go": {
 		Name:      "Go",
 		IsBackend: true,
 		Source:    "templates/go",
-		ExtraDirs: []string{"internal/entity", "internal/usecase"},
+		Variants: []Variant{
+			{Name: "Simples (padrao)", Source: "templates/golang/simple", ExtraDirs: []string{"cmd/api", "internal/entity", "internal/infra/repository", "internal/infra/web", "internal/usecase"}},
+			{Name: "Gin", Source: "templates/golang/Gin", ExtraDirs: golangSubDirs},
+		},
 	},
-	"Python (FastAPI)": {
+	"Python": {
 		Name:      "Python",
 		IsBackend: true,
-		Source:    "templates/python-fastapi",
-		// Aqui usamos o helper para injetar "backend" na frente de tudo
-		ExtraDirs: prefixPaths("backend", pythonSubDirs),
+		Source:    "templates/python",
+		Variants: []Variant{
+			{
+				Name:   "Simples (Recomendado)",
+				Source: "templates/python/simple",
+			},
+			{
+				Name:      "FastAPI",
+				Source:    "templates/python/FastAPI",
+				ExtraDirs: prefixPaths("backend", pythonSubDirs),
+			},
+		},
 	},
-	"Node (Js)": {Name: "Node", IsBackend: true, Source: "templates/node", RunInstall: true, ExtraDirs: []string{"src/controllers", "src/models"}},
-	"Next.js":   {Name: "Next", IsBackend: false, Source: "pnpm create next-app@latest %s"},
-	"Vite":      {Name: "Vite", IsBackend: false, Source: "pnpm create vite@latest %s"},
+	"Next.js": {Name: "Next", IsBackend: false, Source: "pnpm create next-app@latest %s"},
+	"Vite":    {Name: "Vite", IsBackend: false, Source: "pnpm create vite@latest %s"},
 }
 
 var initCmd = &cobra.Command{
@@ -87,8 +136,25 @@ func runInit(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	selectedStack := stacks[promptSelect("🛠️  Escolha a Stack", options)]
+	// 1. Escolhe a Stack Principal (ex: Node, Go)
+	stackName := promptSelect("🛠️  Escolha a Tech", options)
+	selectedStack := stacks[stackName]
 
+	// 2. LÓGICA NOVA: Verifica se tem Variantes
+	if len(selectedStack.Variants) > 0 {
+		// Mostra o menu de variantes
+		selectedVariant := promptVariant(selectedStack.Variants)
+
+		// Sobrescreve as configurações da Stack com as da Variante
+		selectedStack.Source = selectedVariant.Source
+
+		// Se a variante tiver diretorios extras definidos, usa eles
+		if len(selectedVariant.ExtraDirs) > 0 {
+			selectedStack.ExtraDirs = selectedVariant.ExtraDirs
+		}
+	}
+
+	// 3. Continua para a criação
 	if selectedStack.IsBackend {
 		handleBackend(projectName, selectedStack)
 	} else {
@@ -109,7 +175,6 @@ func handleBackend(name string, s Stack) {
 		os.MkdirAll(filepath.Join(name, d), 0755)
 	}
 
-	// --- AQUI ESTA A CORREÇÃO ---
 	walkErr := fs.WalkDir(templatesFS, s.Source, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -245,4 +310,24 @@ func prefixPaths(prefix string, subs []string) []string {
 
 func init() {
 	rootCmd.AddCommand(initCmd)
+}
+
+func promptVariant(variants []Variant) Variant {
+	var items []string
+	for _, v := range variants {
+		items = append(items, v.Name)
+	}
+
+	prompt := promptui.Select{
+		Label: "⚡ Escolha uma variante", // O ícone dá um charme
+		Items: items,
+		Size:  5, // Quantos itens aparecem antes de rolar
+	}
+
+	idx, _, err := prompt.Run()
+	if err != nil {
+		os.Exit(1)
+	}
+
+	return variants[idx]
 }
