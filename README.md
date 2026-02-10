@@ -1,82 +1,77 @@
-# 📦 DevBox CLI
+<div align="center">
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go" />
-  <img src="https://img.shields.io/badge/Cobra-v1.8.0-blue?style=for-the-badge" alt="Cobra" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License" />
-</p>
+  # 📦 Devbox CLI
+  
+  **Acelere seu desenvolvimento.**<br>
+  Crie projetos Backend e Frontend configurados com as melhores práticas<br>
+  (Clean Architecture, DDD, SOLID) em segundos.
 
-**DevBox** é uma CLI de alta performance desenvolvida em Go, projetada para automatizar fluxos de trabalho repetitivos, garantir padrões de commit e diagnosticar a saúde do seu ambiente de desenvolvimento.
+  <p>
+    <img src="https://img.shields.io/github/go-mod/go-version/Samuteg/DevboxCLI?style=flat-square&color=00ADD8" alt="Go Version" />
+    <img src="https://img.shields.io/github/license/Samuteg/DevboxCLI?style=flat-square&color=5D6D7E" alt="License" />
+    <img src="https://img.shields.io/github/v/release/Samuteg/DevboxCLI?style=flat-square&color=2ECC71" alt="Release" />
+  </p>
+
+  <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcDdtY3J6Y2Z6Y2Z6Y2Z6Y2Z6Y2Z6Y2Z6Y2Z6Y2Z6Y2Z6Y2Z6/placeholder-demo.gif" alt="Devbox CLI Demo" width="800px" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+  
+  <br><br>
+
+  [**Instalar Agora**](#-instalação) • [**Como Usar**](#-como-usar) • [**Stacks**](#-stacks-suportadas)
+
+</div>
 
 ---
 
-## 🎨 O Projeto
+## ✨ Por que usar o Devbox?
 
-```text
-  _____  ______      __ ____   ____ __   __
- |  __ \|  ____\ \    / /  _ \ / __ \\ \ / /
- | |  | | |__   \ \  / /| |_) | |  | |\ V / 
- | |  | |  __|   \ \/ / |  _ <| |  | | > <  
- | |__| | |____   \  /  | |_) | |__| |/ . \ 
- |_____/|______|   \/   |____/ \____//_/ \_\
+A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de projetos velhos). Em vez de gastar horas configurando pastas, linters e Docker, inicie uma aplicação robusta com um comando.
 
-      >>> Sua Toolbox de Automação Pessoal <<<
-🚀 Funcionalidades
-🩺 System Doctor
-Verifica instantaneamente se as dependências essenciais (Git, Docker, Go, Node) estão instaladas e configuradas no seu PATH.
+<table>
+  <tr>
+    <td width="50%">
+      <h3>🚀 Setup Instantâneo</h3>
+      <p>Esqueça o boilerplate. Gere projetos completos com dependências instaladas e git inicializado automaticamente.</p>
+    </td>
+    <td width="50%">
+      <h3>🏗️ Clean Architecture</h3>
+      <p>Templates de Backend (Go/Python) já nascem com estrutura de <i>Domain-Driven Design</i> e separação de camadas.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>🎨 Frontend Moderno</h3>
+      <p>Integração nativa com <b>Vite</b> (React/TS) e <b>Next.js</b>, configurados com Tailwind e ESLint.</p>
+    </td>
+    <td width="50%">
+      <h3>🩺 Devbox Doctor</h3>
+      <p>O comando <code>doctor</code> verifica seu ambiente (Go, Node, Python, pnpm) e avisa o que falta instalar.</p>
+    </td>
+  </tr>
+</table>
 
-Bash
-devbox doctor
-🛡️ Smart Save (Git Flow)
-Commita e envia suas alterações com segurança.
+---
 
-Proteção de Branch: Impede commits diretos na main ou master.
+## 🛠️ Stacks Suportadas
 
-Validação: Garante que as mensagens de commit sigam padrões.
+### Backend
+| Stack | Variantes | Detalhes da Arquitetura |
+| :--- | :--- | :--- |
+| **Go** | `Clean Arch`, `Simple` | `cmd/`, `internal/entity`, `internal/usecase` |
+| **Python** | `FastAPI` | `src/api`, `src/core`, `src/models`, `tests/` |
+| **Node.js** | `TypeScript`, `JavaScript` | `src/controllers`, `src/routes`, `src/models` |
 
-Bash
-devbox save "feat: nova funcionalidade incrível"
-🧹 Workspace Cleanup
-Remove branches locais que já foram mergeadas ou que não existem mais no repositório remoto, mantendo seu ambiente limpo.
+### Frontend
+| Stack | Detalhes |
+| :--- | :--- |
+| **React** | Via Vite (TypeScript + SWC) |
+| **Next.js** | App Router, TailwindCSS, ESLint |
 
-Bash
-devbox cleanup --dry-run
-🔄 Self-Update
-Mantenha sua ferramenta sempre atualizada com um único comando, baixando a versão mais recente diretamente do repositório.
+---
 
-Bash
-devbox update
-🛠️ Instalação
-Certifique-se de que o diretório $GOPATH/bin está no seu PATH.
+## 🚀 Instalação
 
-Bash
-# Clone o repositório
-git clone [https://github.com/seu-usuario/devbox.git](https://github.com/seu-usuario/devbox.git)
+### Opção 1: Via Go Install (Recomendado)
+Se você é desenvolvedor Go, esta é a maneira mais rápida:
 
-# Entre na pasta
-cd devbox
-
-# Instale globalmente
-go install .
-⚙️ Configuração
-A DevBox utiliza um arquivo de configuração yaml para personalizar o comportamento:
-
-Crie o arquivo em ~/.devbox.yaml:
-
-YAML
-repo: "[github.com/samuteg/DevboxCLI](https://github.com/samuteg/DevboxCLI)"
-protected_branches:
-  - "main"
-  - "master"
-  - "production"
-workspace: "~/projects"
-🏗️ Tecnologias Utilizadas
-Go - Linguagem base.
-
-Cobra - Framework para interfaces CLI.
-
-Viper - Gerenciamento de configuração.
-
-Go-Git - Manipulação nativa de repositórios Git.
-
-Desenvolvido por Samuel Neves
+```bash
+go install [github.com/Samuteg/DevboxCLI@latest](https://github.com/Samuteg/DevboxCLI@latest)
