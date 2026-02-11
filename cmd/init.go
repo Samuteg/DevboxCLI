@@ -52,6 +52,23 @@ var (
 		"pkg/server/storage/cache/redis",
 		"pkg/server/storage/db/mysql",
 	}
+	rubySubDirs = []string{
+		".github/workflows",
+		"lib/generators/rails/templates",
+		"lib/jb",
+		"test/dummy_app/app/assents/config",
+		"test/dummy_app/app/assents/javascripts",
+		"test/dummy_app/app/assents/stylesheets",
+		"test/dummy_app/app/controllers",
+		"test/dummy_app/app/helpers",
+		"test/dummy_app/app/mailers",
+		"test/dummy_app/app/models",
+		"test/dummy_app/app/views",
+		"test/dummy_app/bin",
+		"test/dummy_app/config/environments",
+		"test/dummy_app/config/initializers",
+		"test/dummy_app/config/features",
+	}
 )
 
 type Variant struct {
@@ -111,6 +128,22 @@ var stacks = map[string]Stack{
 				Name:      "FastAPI",
 				Source:    "templates/python/FastAPI",
 				ExtraDirs: prefixPaths("backend", pythonSubDirs),
+			},
+		},
+	},
+	"Ruby": {
+		Name:      "Ruby",
+		IsBackend: true,
+		Source:    "templates/ruby",
+		Variants: []Variant{
+			{
+				Name:   "simple",
+				Source: "templates/ruby/simple",
+			},
+			{
+				Name:      "Rails",
+				Source:    "templates/ruby/On_rails",
+				ExtraDirs: rubySubDirs,
 			},
 		},
 	},

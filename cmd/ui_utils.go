@@ -80,8 +80,11 @@ func ShowSuccessBox(projectName, stack string) {
 
 	if stack == "Go" {
 		fmt.Printf("  %s %s\n", success(IconStep), bold("go run main.go"))
-	} else {
-		fmt.Printf("  %s %s\n", success(IconStep), bold("npm run dev"))
+		if stack == "Python" {
+			fmt.Printf("  %s %s\n", success(IconStep), bold("python main.py"))
+		} else {
+			fmt.Printf("  %s %s\n", success(IconStep), bold("npm run dev"))
+		}
 	}
 	fmt.Println(color.MagentaString("---------------------------------"))
 	fmt.Println(info("  Dúvidas? Acesse nosso GitHub! 🚀\n"))
