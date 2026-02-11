@@ -1,5 +1,5 @@
-# Pull official latest Python Docker image (Pulished with version 3.11.0)
-FROM --platform=linux/amd64 python:latest
+# Pull official Python Docker image with pinned version
+FROM --platform=linux/amd64 python:3.14.3@sha256:4b827abf32c14b7df9a0dc5199c2f0bc46e2c9862cd5d77eddae8a2cd8460f60
 
 # Set the working directory
 WORKDIR /usr/backend
