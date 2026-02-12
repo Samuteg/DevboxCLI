@@ -5,66 +5,168 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/spf13/cobra"
 )
 
+// Tipos de componentes válidos
+var validTypes = []string{"controller", "usecase", "repository", "handler"}
+
 var addCmd = &cobra.Command{
 	Use:   "add [tipo] [nome]",
-	Short: "Gera boilerplate para componentes (controller, usecase, etc)",
-	Args:  cobra.ExactArgs(2),
-	Run: func(cmd *cobra.Command, args []string) {
-		kind := strings.ToLower(args[0])
-		name := args[1]
+	Short: "Adiciona um novo componente ao projeto",
+	Args:  cobra.MaximumNArgs(2), // Aceita 0, 1 ou 2 argumentos
+	Run:   runAdd,
+}
 
-		if isNodeProject() {
-			generateFromTemplate("node", kind, name)
-		} else if isGoProject() {
-			generateFromTemplate("go", kind, name)
-		} else {
-			fmt.Println("❌ Erro: Não detectei um projeto Node (package.json) ou Go (go.mod) nesta pasta.")
+func runAdd(cmd *cobra.Command, args []string) {
+	var resourceType, resourceName string
+
+	// 1. Resolve o TIPO
+	if len(args) > 0 {
+		resourceType = strings.ToLower(args[0])
+	}
+	// Validação simples: se não for válido ou estiver vazio, pergunta
+	if !isValidType(resourceType) {
+		if resourceType != "" {
+			fmt.Printf("⚠️  Tipo '%s' desconhecido.\n", resourceType)
 		}
-	},
-}
+		resourceType = promptSelect("O que você quer criar?", validTypes)
+	}
 
-func generateFromTemplate(stack, kind, name string) {
-	// 1. Define o caminho do template no embed e o destino no disco
-	templatePath := fmt.Sprintf("templates/%s/%s.tmpl", stack, kind)
-
-	// Define onde o arquivo será salvo baseado na stack
-	var targetPath string
-	capitalizedName := strings.Title(name)
-
-	if stack == "node" {
-		targetPath = filepath.Join("src", kind+"s", capitalizedName+strings.Title(kind)+".js")
+	// 2. Resolve o NOME
+	if len(args) > 1 {
+		resourceName = args[1]
 	} else {
-		targetPath = filepath.Join("internal", kind, name+".go")
+		resourceName = promptInput("Qual o nome do componente?", "O nome é obrigatório", 2)
 	}
 
-	// 2. Lê o template do embed
-	content, err := templatesFS.ReadFile(templatePath)
+	// 3. Executa a criação real
+	err := createComponent(resourceType, resourceName)
 	if err != nil {
-		fmt.Printf("❌ Erro: O tipo '%s' não existe para a stack %s.\n", kind, stack)
-		return
+		fmt.Printf("❌ Erro ao criar componente: %v\n", err)
+		os.Exit(1)
 	}
-
-	// 3. Substitui as variáveis
-	output := strings.ReplaceAll(string(content), "{{NAME}}", capitalizedName)
-
-	// 4. Cria a pasta se não existir e escreve o arquivo
-	os.MkdirAll(filepath.Dir(targetPath), 0755)
-	err = os.WriteFile(targetPath, []byte(output), 0644)
-	if err != nil {
-		fmt.Printf("❌ Erro ao criar arquivo: %v\n", err)
-		return
-	}
-
-	fmt.Printf("✅ %s gerado com sucesso em: %s\n", strings.Title(kind), targetPath)
 }
 
-// Funções de detecção simples
-func isNodeProject() bool { _, err := os.Stat("package.json"); return err == nil }
-func isGoProject() bool   { _, err := os.Stat("go.mod"); return err == nil }
+// --- Lógica de Criação de Arquivos ---
+
+func createComponent(rType, rName string) error {
+	// Formata o nome (ex: user -> User)
+	modelName := strings.Title(strings.ToLower(rName)) // Ex: User
+	fileName := strings.ToLower(rName)                 // Ex: user
+
+	var path, contentTemplate string
+
+	// Define o caminho e o conteúdo baseado no tipo
+	switch rType {
+	case "controller":
+		path = filepath.Join("internal", "controllers", fileName+"_controller.go")
+		contentTemplate = controllerTmpl
+	case "usecase":
+		path = filepath.Join("internal", "usecase", fileName+"_usecase.go")
+		contentTemplate = usecaseTmpl
+	case "repository":
+		path = filepath.Join("internal", "repository", fileName+"_repository.go")
+		contentTemplate = repositoryTmpl
+	case "handler":
+		path = filepath.Join("internal", "handlers", fileName+"_handler.go")
+		contentTemplate = handlerTmpl
+	default:
+		return fmt.Errorf("tipo não implementado: %s", rType)
+	}
+
+	// 1. Garante que a pasta existe
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return fmt.Errorf("erro ao criar pasta: %w", err)
+	}
+
+	// 2. Verifica se o arquivo já existe para não sobrescrever
+	if _, err := os.Stat(path); err == nil {
+		return fmt.Errorf("o arquivo %s já existe", path)
+	}
+
+	// 3. Prepara os dados para o template
+	data := map[string]string{
+		"Name":      modelName, // User
+		"LowerName": fileName,  // user
+	}
+
+	// 4. Processa o template e escreve no arquivo
+	tmpl, err := template.New("component").Parse(contentTemplate)
+	if err != nil {
+		return err
+	}
+
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if err := tmpl.Execute(f, data); err != nil {
+		return err
+	}
+
+	fmt.Printf("✅ Arquivo criado com sucesso: %s\n", path)
+	return nil
+}
+
+// --- Templates Embutidos (Strings) ---
+
+const controllerTmpl = `package controllers
+
+import "github.com/gin-gonic/gin"
+
+type {{.Name}}Controller struct{}
+
+func New{{.Name}}Controller() *{{.Name}}Controller {
+	return &{{.Name}}Controller{}
+}
+
+func (c *{{.Name}}Controller) Create(ctx *gin.Context) {
+	ctx.JSON(200, gin.H{"message": "Create {{.Name}}"})
+}
+`
+
+const usecaseTmpl = `package usecase
+
+type {{.Name}}UseCase struct{}
+
+func New{{.Name}}UseCase() *{{.Name}}UseCase {
+	return &{{.Name}}UseCase{}
+}
+
+func (u *{{.Name}}UseCase) Execute() error {
+	return nil
+}
+`
+
+const repositoryTmpl = `package repository
+
+type {{.Name}}Repository interface {
+	Save() error
+}
+`
+
+const handlerTmpl = `package handlers
+
+import "net/http"
+
+func Get{{.Name}}(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Hello {{.Name}}"))
+}
+`
+
+func isValidType(t string) bool {
+	for _, v := range validTypes {
+		if v == t {
+			return true
+		}
+	}
+	return false
+}
 
 func init() {
 	rootCmd.AddCommand(addCmd)

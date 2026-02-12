@@ -10,7 +10,7 @@ import (
 )
 
 var commitWizardCmd = &cobra.Command{
-	Use:   "commit_wizard",
+	Use:   "commit",
 	Short: "Assistente interativo para Conventional Commits",
 	Run: func(cmd *cobra.Command, args []string) {
 

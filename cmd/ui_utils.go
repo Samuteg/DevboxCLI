@@ -79,11 +79,11 @@ func ShowSuccessBox(projectName, stack string) {
 	fmt.Printf("  %s %s %s\n", success(IconStep), bold("cd"), projectName)
 
 	if stack == "Go" {
-		fmt.Printf("  %s %s\n", success(IconStep), bold("go run main.go"))
+		fmt.Printf(stringHandler, success(IconStep), bold("go run main.go"))
 		if stack == "Python" {
-			fmt.Printf("  %s %s\n", success(IconStep), bold("python main.py"))
+			fmt.Printf(stringHandler, success(IconStep), bold("python main.py"))
 		} else {
-			fmt.Printf("  %s %s\n", success(IconStep), bold("npm run dev"))
+			fmt.Printf(stringHandler, success(IconStep), bold("npm run dev"))
 		}
 	}
 	fmt.Println(color.MagentaString("---------------------------------"))
@@ -99,6 +99,6 @@ func PrintBanner() {
 /_____/_____/  |___/_____/\____/_/|_|  `
 
 	fmt.Println(info(banner))
-	fmt.Printf("\n%s %s\n", success("●"), bold("DevBox CLI v0.0.1"))
+	fmt.Printf("\n%s %s\n", success("●"), bold("DevBox CLI v1.0.0"))
 	fmt.Printf("%s %s\n\n", info("ℹ"), "Pronto para otimizar sua rotina.\n")
 }
