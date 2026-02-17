@@ -19,7 +19,6 @@ import (
 var templatesFS embed.FS
 
 var (
-	// Definimos as subpastas separadamente para não poluir o mapa
 	pythonSubDirs = []string{
 		"src/api/routes",
 		"src/api/dependencies",
@@ -90,18 +89,17 @@ var stacks = map[string]Stack{
 	"Node.js": {
 		Name:      "Node",
 		IsBackend: true,
-		// Source padrão (caso não tenha variante, ou base)
-		Source: "templates/node/base",
+		Source:    "templates/node/base",
 		Variants: []Variant{
 			{
 				Name:      "TypeScript (Recomendado)",
-				Source:    "templates/node/ts", // A pasta deve existir
+				Source:    "templates/node/ts",
 				ExtraDirs: []string{"src/types", "src/controllers"},
 			},
 			{
 				Name:      "JavaScript",
 				Source:    "templates/node/js",
-				ExtraDirs: []string{"src/controllers"},
+				ExtraDirs: []string{"src/controllers", "src/libs", "src/middleware", "src/routes", "src/models"},
 			},
 		},
 		RunInstall: true,
@@ -352,9 +350,9 @@ func promptVariant(variants []Variant) Variant {
 	}
 
 	prompt := promptui.Select{
-		Label: "⚡ Escolha uma variante", // O ícone dá um charme
+		Label: "⚡ Escolha uma variante",
 		Items: items,
-		Size:  5, // Quantos itens aparecem antes de rolar
+		Size:  5,
 	}
 
 	idx, _, err := prompt.Run()

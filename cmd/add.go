@@ -10,13 +10,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Tipos de componentes válidos
 var validTypes = []string{"controller", "usecase", "repository", "handler"}
 
 var addCmd = &cobra.Command{
 	Use:   "add [tipo] [nome]",
 	Short: "Adiciona um novo componente ao projeto",
-	Args:  cobra.MaximumNArgs(2), // Aceita 0, 1 ou 2 argumentos
+	Args:  cobra.MaximumNArgs(2),
 	Run:   runAdd,
 }
 
