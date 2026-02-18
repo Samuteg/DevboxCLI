@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/fatih/color"
 )
 
@@ -15,6 +16,47 @@ var (
 	warning  = color.New(color.FgYellow).SprintFunc()
 	errColor = color.New(color.FgRed).SprintFunc()
 	bold     = color.New(color.Bold).SprintFunc()
+
+	// Ícones de Estado
+	iconStepTodo   = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).SetString("○") // Círculo cinza
+	iconStepActive = lipgloss.NewStyle().Foreground(primaryColor).SetString("●")          // Círculo Roxo
+	iconStepDone   = lipgloss.NewStyle().Foreground(successColor).SetString("✔")          // Check Verde
+
+	// Texto dos Passos
+	textStepTodo   = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	textStepActive = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFF")).Bold(true)
+	textStepDone   = lipgloss.NewStyle().Foreground(lipgloss.Color("#CCC")).Strikethrough(false)
+
+	// Estilo para o nome do arquivo na árvore
+	fileStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#00ADD8"))            // Ciano
+	dirStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#F4D03F")).Bold(true) // Amarelo
+
+	// Paleta de Cores
+	primaryColor   = lipgloss.Color("#7D56F4")
+	grayColor      = lipgloss.Color("#626262")
+	secondaryColor = lipgloss.Color("#00ADD8")
+	successColor   = lipgloss.Color("#27AE60")
+	errorColor     = lipgloss.Color("#E74C3C")
+
+	// Estilo do Título (Banner)
+	titleStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(primaryColor).         // Cor do texto
+			Border(lipgloss.RoundedBorder()). // Borda arredondada
+			BorderForeground(primaryColor).   // Cor da borda
+			Padding(0, 1).                    // Espaço interno (respiro)
+			MarginLeft(1)                     // Espaço da esquerda da tela1)
+
+	// Estilo para Mensagens de Sucesso
+	successBox = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(successColor).
+			Padding(1, 2).
+			Bold(true).
+			MarginTop(1)
+
+	// Estilo para Texto em Destaque
+	highlight = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
 )
 
 // --- NOVAS FUNCIONALIDADES (Use estas daqui para frente) ---
@@ -67,8 +109,15 @@ func ExecuteCommandSilent(name string, args []string, dir string) error {
 	return cmd.Run()
 }
 
-func showSuccessBox(projectName, stack string) {
-	ShowSuccessBox(projectName, stack)
+func showSuccessBox(projectName, stackName string) {
+	content := fmt.Sprintf(
+		"🚀 Projeto %s criado com sucesso!\n\nStack: %s\nPróximo passo: %s",
+		highlight.Render(projectName),
+		highlight.Render(stackName),
+		highlight.Render("cd "+projectName+" && code ."),
+	)
+
+	fmt.Println(successBox.Render(content))
 }
 
 // ShowSuccessBox (Versão Nova e Melhorada)
@@ -91,14 +140,36 @@ func ShowSuccessBox(projectName, stack string) {
 }
 
 func PrintBanner() {
-	banner := `
-    ____  _______    ______  ____ _  __
-   / __ \/ ____/ |  / / __ )/ __ \ |/ /
-  / / / / __/  | | / / __  / / / /   / 
- / /_/ / /___  | |/ / /_/ / /_/ /   |  
-/_____/_____/  |___/_____/\____/_/|_|  `
+	// Gradiente simulado (Texto Roxo + Setinha Ciano)
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Bold(true)
 
-	fmt.Println(info(banner))
-	fmt.Printf("\n%s %s\n", success("●"), bold("DevBox CLI v1.0.0"))
-	fmt.Printf("%s %s\n\n", info("ℹ"), "Pronto para otimizar sua rotina.\n")
+	asciiArt := `
+    ____  _______    ______  ____  _  __
+   / __ \/ ____/ |  / / __ )/ __ \| |/ /
+  / / / / __/  | | / / __  / / / /   /  
+ / /_/ / /___  | |/ / /_/ / /_/ /   |   
+/_____/_____/  |___/_____/\____/_/|_|   
+`
+	fmt.Println(style.Render(asciiArt))
+	fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(2).Render("v1.0.0 • Automation Tool"))
+	fmt.Println()
+}
+
+// Função auxiliar para imprimir um passo
+func printStep(status string, text string) {
+	var icon, msg string
+
+	switch status {
+	case "todo":
+		icon = iconStepTodo.String()
+		msg = textStepTodo.Render(text)
+	case "active":
+		icon = iconStepActive.String()
+		msg = textStepActive.Render(text)
+	case "done":
+		icon = iconStepDone.String()
+		msg = textStepDone.Render(text)
+	}
+
+	fmt.Printf("  %s  %s\n", icon, msg)
 }
