@@ -92,11 +92,6 @@ var stacks = map[string]Stack{
 		Source:    "templates/node/base",
 		Variants: []Variant{
 			{
-				Name:      "TypeScript (Recomendado)",
-				Source:    "templates/node/ts",
-				ExtraDirs: []string{"src/types", "src/controllers"},
-			},
-			{
 				Name:      "JavaScript",
 				Source:    "templates/node/js",
 				ExtraDirs: []string{"src/controllers", "src/libs", "src/middleware", "src/routes", "src/models"},
