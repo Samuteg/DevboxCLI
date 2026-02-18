@@ -38,15 +38,6 @@ var (
 	successColor   = lipgloss.Color("#27AE60")
 	errorColor     = lipgloss.Color("#E74C3C")
 
-	// Estilo do Título (Banner)
-	titleStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(primaryColor).         // Cor do texto
-			Border(lipgloss.RoundedBorder()). // Borda arredondada
-			BorderForeground(primaryColor).   // Cor da borda
-			Padding(0, 1).                    // Espaço interno (respiro)
-			MarginLeft(1)                     // Espaço da esquerda da tela1)
-
 	// Estilo para Mensagens de Sucesso
 	successBox = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
@@ -59,8 +50,6 @@ var (
 	highlight = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
 )
 
-// --- NOVAS FUNCIONALIDADES (Use estas daqui para frente) ---
-
 // Ícones para feedback visual rápido
 const (
 	IconSuccess = "✔"
@@ -72,22 +61,18 @@ const (
 
 const stringHandler = "%s %s\n"
 
-// LogSuccess: Imprime uma mensagem de sucesso padronizada com ícone
 func LogSuccess(message string) {
 	fmt.Printf(stringHandler, success(IconSuccess), message)
 }
 
-// LogError: Imprime erro padronizado
 func LogError(message string) {
 	fmt.Printf(stringHandler, errColor(IconError), errColor(message))
 }
 
-// LogInfo: Imprime informação padronizada
 func LogInfo(message string) {
 	fmt.Printf(stringHandler, info(IconInfo), message)
 }
 
-// LogWarning: Imprime aviso
 func LogWarning(message string) {
 	fmt.Printf(stringHandler, warning("!"), warning(message))
 }
@@ -120,7 +105,6 @@ func showSuccessBox(projectName, stackName string) {
 	fmt.Println(successBox.Render(content))
 }
 
-// ShowSuccessBox (Versão Nova e Melhorada)
 func ShowSuccessBox(projectName, stack string) {
 	fmt.Println(bold("\n✨ Projeto criado com sucesso!"))
 	fmt.Println(color.MagentaString("---------------------------------"))
@@ -155,7 +139,6 @@ func PrintBanner() {
 	fmt.Println()
 }
 
-// Função auxiliar para imprimir um passo
 func printStep(status string, text string) {
 	var icon, msg string
 

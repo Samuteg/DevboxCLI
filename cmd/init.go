@@ -152,12 +152,10 @@ var initCmd = &cobra.Command{
 }
 
 func runInit(cmd *cobra.Command, args []string) {
-	// Passo 1: Coleta de Dados
 	printStep("active", "Configuração Inicial")
 	projectName := promptInput("  📁 Nome do Projeto", "Nome muito curto", 2)
 	projectType := promptSelect("  💻 Tipo de Projeto", []string{"Backend", "Frontend"})
 
-	// Filtra stacks pelo tipo escolhido
 	var options []string
 	for name, s := range stacks {
 		if (projectType == "Backend" && s.IsBackend) || (projectType == "Frontend" && !s.IsBackend) {
@@ -165,11 +163,10 @@ func runInit(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// 1. Escolhe a Stack Principal (ex: Node, Go)
 	stackName := promptSelect("🛠️  Escolha a Tech", options)
 	selectedStack := stacks[stackName]
 
-	// 2. Verifica se tem Variantes
+	// Verifica se tem Variantes
 	if len(selectedStack.Variants) > 0 {
 		selectedVariant := promptVariant(selectedStack.Variants)
 		selectedStack.Source = selectedVariant.Source
@@ -181,7 +178,6 @@ func runInit(cmd *cobra.Command, args []string) {
 	printStep("done", fmt.Sprintf("Configurado: %s | %s", projectName, stackName))
 	fmt.Println()
 
-	// 3. Continua para a criação
 	if selectedStack.IsBackend {
 		handleBackend(projectName, selectedStack)
 	} else {
@@ -191,7 +187,6 @@ func runInit(cmd *cobra.Command, args []string) {
 
 func handleBackend(name string, s Stack) {
 	printStep("active", "Gerando arquivos e diretórios...")
-	// Iniciamos o spinner para dar feedback visual
 	spin := NewSpinner(info(" Escaneando templates..."))
 	spin.Start()
 
@@ -257,7 +252,6 @@ func handleBackend(name string, s Stack) {
 		installSpin.Stop()
 	}
 
-	// FEEDBACK FINAL: Árvore de Arquivos
 	fmt.Println()
 	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("📦 Estrutura criada:"))
 	renderMinimalTree(name, s)
