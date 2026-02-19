@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
@@ -151,10 +152,10 @@ var initCmd = &cobra.Command{
 }
 
 func runInit(cmd *cobra.Command, args []string) {
-	projectName := promptInput("📁 Nome do Projeto", "nome muito curto", 2)
-	projectType := promptSelect("💻 Tipo de Projeto", []string{"Backend", "Frontend"})
+	printStep("active", "Configuração Inicial")
+	projectName := promptInput("  📁 Nome do Projeto", "Nome muito curto", 2)
+	projectType := promptSelect("  💻 Tipo de Projeto", []string{"Backend", "Frontend"})
 
-	// Filtra stacks pelo tipo escolhido
 	var options []string
 	for name, s := range stacks {
 		if (projectType == "Backend" && s.IsBackend) || (projectType == "Frontend" && !s.IsBackend) {
@@ -162,25 +163,21 @@ func runInit(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// 1. Escolhe a Stack Principal (ex: Node, Go)
 	stackName := promptSelect("🛠️  Escolha a Tech", options)
 	selectedStack := stacks[stackName]
 
-	// 2. LÓGICA NOVA: Verifica se tem Variantes
+	// Verifica se tem Variantes
 	if len(selectedStack.Variants) > 0 {
-		// Mostra o menu de variantes
 		selectedVariant := promptVariant(selectedStack.Variants)
-
-		// Sobrescreve as configurações da Stack com as da Variante
 		selectedStack.Source = selectedVariant.Source
-
-		// Se a variante tiver diretorios extras definidos, usa eles
 		if len(selectedVariant.ExtraDirs) > 0 {
 			selectedStack.ExtraDirs = selectedVariant.ExtraDirs
 		}
 	}
 
-	// 3. Continua para a criação
+	printStep("done", fmt.Sprintf("Configurado: %s | %s", projectName, stackName))
+	fmt.Println()
+
 	if selectedStack.IsBackend {
 		handleBackend(projectName, selectedStack)
 	} else {
@@ -189,8 +186,8 @@ func runInit(cmd *cobra.Command, args []string) {
 }
 
 func handleBackend(name string, s Stack) {
-	// Iniciamos o spinner para dar feedback visual
-	spin := NewSpinner(info("Construindo a estrutura do backend..."))
+	printStep("active", "Gerando arquivos e diretórios...")
+	spin := NewSpinner(info(" Escaneando templates..."))
 	spin.Start()
 
 	// Cria a pasta raiz do projeto
@@ -246,12 +243,18 @@ func handleBackend(name string, s Stack) {
 		return
 	}
 
+	printStep("done", "Estrutura de arquivos finalizada")
+
 	if s.RunInstall {
 		installSpin := NewSpinner(info("Instalando dependências (npm install)..."))
 		installSpin.Start()
 		ExecuteCommandSilent("npm", []string{"install"}, name)
 		installSpin.Stop()
 	}
+
+	fmt.Println()
+	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("📦 Estrutura criada:"))
+	renderMinimalTree(name, s)
 
 	showSuccessBox(name, s.Name)
 }
@@ -356,4 +359,31 @@ func promptVariant(variants []Variant) Variant {
 	}
 
 	return variants[idx]
+}
+
+func renderMinimalTree(projectName string, s Stack) {
+	// Estilos para a árvore
+	branch := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("├──")
+	lastBranch := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("└──")
+	folder := lipgloss.NewStyle().Foreground(lipgloss.Color("#F4D03F")).Bold(true)
+
+	fmt.Printf("  %s\n", folder.Render(projectName+"/"))
+
+	// Mostra apenas as 3 primeiras pastas de ExtraDirs para não poluir
+	limit := 3
+	if len(s.ExtraDirs) < limit {
+		limit = len(s.ExtraDirs)
+	}
+
+	for i := 0; i < limit; i++ {
+		char := branch
+		if i == limit-1 && limit < 4 {
+			char = lastBranch
+		}
+		fmt.Printf("  %s %s\n", char, folder.Render(s.ExtraDirs[i]))
+	}
+
+	if len(s.ExtraDirs) > limit {
+		fmt.Printf("  %s %s\n", lastBranch, lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("242")).Render("... e mais diretórios"))
+	}
 }

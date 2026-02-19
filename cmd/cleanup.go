@@ -3,39 +3,71 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"sync"
-	"time"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
 var cleanupCmd = &cobra.Command{
 	Use:   "cleanup",
-	Short: "Limpeza profunda de arquivos desnecessários",
-	Run: func(cmd *cobra.Command, args []string) {
-		s := NewSpinner(info("Limpando a casa..."))
-		s.Start()
+	Short: "Remove arquivos temporários e dependências (node_modules, dist, etc)",
+	Run:   runCleanup,
+}
 
-		start := time.Now()
-		folders := []string{"node_modules", "dist", ".next", "bin"}
+func runCleanup(cmd *cobra.Command, args []string) {
+	fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("244")).Render("  Iniciando limpeza profunda do ambiente...\n"))
 
-		var wg sync.WaitGroup
-		for _, folder := range folders {
-			if _, e := os.Stat(folder); e == nil {
-				wg.Add(1)
-				go func(f string) {
-					defer wg.Done()
-					os.RemoveAll(f)
-				}(folder)
+	targets := []string{
+		"node_modules",
+		"dist",
+		"build",
+		"bin",
+		".next",
+		"vendor",
+	}
+
+	filesRemoved := 0
+	var removedDirs []string
+
+	for _, target := range targets {
+		// Verifica se o diretório existe
+		if _, err := os.Stat(target); err == nil {
+			printStep("active", fmt.Sprintf("Removendo %s...", target))
+
+			err := os.RemoveAll(target)
+			if err != nil {
+				fmt.Printf("    %s %v\n", iconFail.Render("!"), err)
+			} else {
+				filesRemoved++
+				removedDirs = append(removedDirs, target)
+				// Feedback visual de item deletado
+				fmt.Printf("    %s %s\n", delStyle.Render("🗑"), pathStyle.Render(target+" removido"))
 			}
 		}
+	}
 
-		wg.Wait()
-		s.Stop()
+	if filesRemoved > 0 {
+		showCleanupSummary(removedDirs)
+	} else {
+		fmt.Println(lipgloss.NewStyle().
+			Foreground(successColor).
+			Bold(true).
+			MarginLeft(2).
+			Render("\n✨ Nada para limpar! Seu ambiente já está brilhando."))
+	}
+}
 
-		duration := time.Since(start)
-		fmt.Printf("%s Limpeza concluída em %v\n", success("✔"), bold(duration))
-	},
+func showCleanupSummary(dirs []string) {
+	title := lipgloss.NewStyle().Bold(true).Foreground(secondaryColor).Render("LIMPEZA CONCLUÍDA")
+
+	content := fmt.Sprintf(
+		"%s\n\nDiretórios limpos: %v\nStatus: %s",
+		title,
+		len(dirs),
+		lipgloss.NewStyle().Foreground(successColor).Render("Ambiente Otimizado 🚀"),
+	)
+
+	fmt.Println(summaryBox.Render(content))
 }
 
 func init() {

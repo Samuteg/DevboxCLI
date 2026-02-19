@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/fatih/color"
 )
 
@@ -15,9 +16,105 @@ var (
 	warning  = color.New(color.FgYellow).SprintFunc()
 	errColor = color.New(color.FgRed).SprintFunc()
 	bold     = color.New(color.Bold).SprintFunc()
-)
 
-// --- NOVAS FUNCIONALIDADES (Use estas daqui para frente) ---
+	// Ícones de Estado
+	iconStepTodo   = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).SetString("○") // Círculo cinza
+	iconStepActive = lipgloss.NewStyle().Foreground(primaryColor).SetString("●")          // Círculo Roxo
+	iconStepDone   = lipgloss.NewStyle().Foreground(successColor).SetString("✔")          // Check Verde
+
+	// Texto dos Passos
+	textStepTodo   = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	textStepActive = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFF")).Bold(true)
+	textStepDone   = lipgloss.NewStyle().Foreground(lipgloss.Color("#CCC")).Strikethrough(false)
+
+	// Paleta de Cores
+	primaryColor   = lipgloss.Color("#7D56F4")
+	grayColor      = lipgloss.Color("#626262")
+	secondaryColor = lipgloss.Color("#00ADD8")
+	successColor   = lipgloss.Color("#27AE60")
+	errorColor     = lipgloss.Color("#E74C3C")
+
+	// Estilo para Mensagens de Sucesso
+	successBox = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(successColor).
+			Padding(1, 2).
+			Bold(true).
+			MarginTop(1)
+
+	// Estilo para Texto em Destaque
+	highlight = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
+
+	// Cores para o Cleanup
+	deleteColor  = lipgloss.Color("#E74C3C") // Vermelho
+	neutralColor = lipgloss.Color("242")     // Cinza
+
+	delStyle  = lipgloss.NewStyle().Foreground(deleteColor).Bold(true)
+	pathStyle = lipgloss.NewStyle().Foreground(neutralColor).Italic(true)
+
+	summaryBox = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(secondaryColor).
+			Padding(0, 2).
+			MarginTop(1)
+
+	// Cores para o Add
+	addComponentColor = lipgloss.Color("#00ADD8") // Ciano para novos arquivos
+	addDirColor       = lipgloss.Color("#F1C40F") // Amarelo para diretórios
+
+	// Estilo da árvore
+	treeBranch = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("├──")
+	treeLast   = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("└──")
+
+	// Cores por tipo de commit
+	featColor     = lipgloss.Color("#A3BE8C") // Verde suave
+	fixColor      = lipgloss.Color("#BF616A") // Vermelho/Vinho
+	docsColor     = lipgloss.Color("#81A1C1") // Azul gelo
+	refactorColor = lipgloss.Color("#B48EAD") // Roxo/Lilás
+
+	// Estilo para a mensagem final de commit no log
+	commitScopeStyle = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
+	commitTypeStyle  = lipgloss.NewStyle().Bold(true).Padding(0, 1).Foreground(lipgloss.Color("#FFF"))
+
+	// Versões
+	versionCurrentStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("246"))                // Cinza
+	versionLatestStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#04B575")).Bold(true) // Verde
+
+	// Banner de "Nova Versão"
+	updateBannerStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#FFF")).
+				Background(lipgloss.Color("#5D3FD3")). // Roxo vibrante
+				Padding(0, 1).
+				Bold(true)
+
+	errorBanner = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("#FFF")).
+			Background(lipgloss.Color("#E74C3C")). // Vermelho vibrante
+			Padding(0, 1)
+
+	errorContextStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#FFF")).
+				Bold(true)
+
+	errorMessageStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("246")) // Cinza para o erro técnico
+
+	errorIcon = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#E74C3C")).
+			SetString("✘")
+
+	// Cores para o Kill
+	targetColor = lipgloss.Color("#EBCB8B") // Amarelo/Dourado (Alvo)
+	killColor   = lipgloss.Color("#BF616A") // Vermelho (Eliminação)
+
+	// Estilo do PID e Porta
+	pidStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Italic(true)
+	portStyle = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
+
+	// Badge de Caveira para processos mortos
+	skullIcon = lipgloss.NewStyle().Foreground(killColor).SetString("☠")
+)
 
 // Ícones para feedback visual rápido
 const (
@@ -30,22 +127,18 @@ const (
 
 const stringHandler = "%s %s\n"
 
-// LogSuccess: Imprime uma mensagem de sucesso padronizada com ícone
 func LogSuccess(message string) {
 	fmt.Printf(stringHandler, success(IconSuccess), message)
 }
 
-// LogError: Imprime erro padronizado
 func LogError(message string) {
 	fmt.Printf(stringHandler, errColor(IconError), errColor(message))
 }
 
-// LogInfo: Imprime informação padronizada
 func LogInfo(message string) {
 	fmt.Printf(stringHandler, info(IconInfo), message)
 }
 
-// LogWarning: Imprime aviso
 func LogWarning(message string) {
 	fmt.Printf(stringHandler, warning("!"), warning(message))
 }
@@ -67,11 +160,17 @@ func ExecuteCommandSilent(name string, args []string, dir string) error {
 	return cmd.Run()
 }
 
-func showSuccessBox(projectName, stack string) {
-	ShowSuccessBox(projectName, stack)
+func showSuccessBox(projectName, stackName string) {
+	content := fmt.Sprintf(
+		"🚀 Projeto %s criado com sucesso!\n\nStack: %s\nPróximo passo: %s",
+		highlight.Render(projectName),
+		highlight.Render(stackName),
+		highlight.Render("cd "+projectName+" && code ."),
+	)
+
+	fmt.Println(successBox.Render(content))
 }
 
-// ShowSuccessBox (Versão Nova e Melhorada)
 func ShowSuccessBox(projectName, stack string) {
 	fmt.Println(bold("\n✨ Projeto criado com sucesso!"))
 	fmt.Println(color.MagentaString("---------------------------------"))
@@ -91,14 +190,54 @@ func ShowSuccessBox(projectName, stack string) {
 }
 
 func PrintBanner() {
-	banner := `
-    ____  _______    ______  ____ _  __
-   / __ \/ ____/ |  / / __ )/ __ \ |/ /
-  / / / / __/  | | / / __  / / / /   / 
- / /_/ / /___  | |/ / /_/ / /_/ /   |  
-/_____/_____/  |___/_____/\____/_/|_|  `
+	// Gradiente simulado (Texto Roxo + Setinha Ciano)
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Bold(true)
 
-	fmt.Println(info(banner))
-	fmt.Printf("\n%s %s\n", success("●"), bold("DevBox CLI v1.0.0"))
-	fmt.Printf("%s %s\n\n", info("ℹ"), "Pronto para otimizar sua rotina.\n")
+	asciiArt := `
+    ____  _______    ______  ____  _  __
+   / __ \/ ____/ |  / / __ )/ __ \| |/ /
+  / / / / __/  | | / / __  / / / /   /  
+ / /_/ / /___  | |/ / /_/ / /_/ /   |   
+/_____/_____/  |___/_____/\____/_/|_|   
+`
+	fmt.Println(style.Render(asciiArt))
+	fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(2).Render("v1.0.0 • Automation Tool"))
+	fmt.Println()
+}
+
+func printStep(status string, text string) {
+	var icon, msg string
+
+	switch status {
+	case "todo":
+		icon = iconStepTodo.String()
+		msg = textStepTodo.Render(text)
+	case "active":
+		icon = iconStepActive.String()
+		msg = textStepActive.Render(text)
+	case "done":
+		icon = iconStepDone.String()
+		msg = textStepDone.Render(text)
+	}
+
+	fmt.Printf("  %s  %s\n", icon, msg)
+}
+
+// HandleError centraliza a exibição de erros na sua CLI
+func HandleError(err error, context string) {
+	if err == nil {
+		return
+	}
+
+	fmt.Println()
+	// Linha 1: Banner de ERRO e o Contexto (ex: Carga de Template)
+	fmt.Printf(stringHandler, errorBanner.Render(" ERROR "), errorContextStyle.Render(context))
+
+	// Linha 2: O ícone e a mensagem técnica do Go
+	fmt.Printf(stringHandler, errorIcon, errorMessageStyle.Render(err.Error()))
+
+	// Linha 3: Uma dica amigável (opcional)
+	tip := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Italic(true).Render("  💡 Dica: Verifique as permissões ou use 'devbox --help'")
+	fmt.Println(tip)
+	fmt.Println()
 }
