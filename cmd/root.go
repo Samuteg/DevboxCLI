@@ -31,6 +31,9 @@ func init() {
 
 	// Altera o template de versão para algo mais limpo (opcional)
 	rootCmd.SetVersionTemplate("DevBox CLI version {{.Version}}\n")
+
+	//função de ajuda padrão
+	rootCmd.SetHelpFunc(helpFunc)
 }
 
 func initConfig() {

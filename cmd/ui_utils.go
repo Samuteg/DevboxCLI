@@ -48,6 +48,21 @@ var (
 
 	// Estilo para Texto em Destaque
 	highlight = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
+
+	// Cores para o Cleanup
+	deleteColor  = lipgloss.Color("#E74C3C") // Vermelho
+	neutralColor = lipgloss.Color("242")     // Cinza
+
+	// Estilo da linha de progresso de deleção
+	delStyle  = lipgloss.NewStyle().Foreground(deleteColor).Bold(true)
+	pathStyle = lipgloss.NewStyle().Foreground(neutralColor).Italic(true)
+
+	// Badge de resumo final
+	summaryBox = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(secondaryColor).
+			Padding(0, 2).
+			MarginTop(1)
 )
 
 // Ícones para feedback visual rápido
