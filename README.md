@@ -51,6 +51,45 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
 
 ---
 
+<hr>
+
+## 🚀 como-usar
+
+<table>
+  <tr>
+    <td width="30%"><b>Comando</b></td>
+    <td><b>Descrição</b></td>
+  </tr>
+  <tr>
+    <td><code>devbox init</code></td>
+    <td>Inicia um novo projeto (Go, Node, Python, Ruby) com estrutura profissional.</td>
+  </tr>
+  <tr>
+    <td><code>devbox add [tipo] [nome]</code></td>
+    <td>Cria componentes (Controllers, Usecases) seguindo padrões de Clean Arch.</td>
+  </tr>
+  <tr>
+    <td><code>devbox commit</code></td>
+    <td>Wizard interativo para mensagens de commit padronizadas.</td>
+  </tr>
+  <tr>
+    <td><code>devbox kill [porta]</code></td>
+    <td>Localiza o PID e encerra o processo ocupando uma porta (ex: 8080).</td>
+  </tr>
+  <tr>
+    <td><code>devbox doctor</code></td>
+    <td>Verifica o estado das dependências instaladas na sua máquina.</td>
+  </tr>
+  <tr>
+    <td><code>devbox cleanup</code></td>
+    <td>Limpa <code>node_modules</code>, caches e binários para liberar espaço.</td>
+  </tr>
+</table>
+
+<hr>
+
+---
+
 ## 🛠️ Stacks Suportadas
 
 ### Backend
