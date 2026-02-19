@@ -23,7 +23,6 @@ var updateCmd = &cobra.Command{
 }
 
 func updateCLI() {
-	// 1. Inicia a Verificação
 	printStep("active", "Buscando atualizações no GitHub...")
 
 	latest, found, err := selfupdate.DetectLatest("Samuteg/DevboxCLI")
@@ -32,13 +31,12 @@ func updateCLI() {
 		return
 	}
 
-	// 2. Valida se encontrou algo
 	if !found {
 		fmt.Printf("\n  %s \n", lipgloss.NewStyle().Foreground(lipgloss.Color("242")).Render("Nenhuma release encontrada no repositório."))
 		return
 	}
 
-	// 3. Compara as versões (SemVer)
+	// Compara as versões (SemVer)
 	vCurrent, _ := semver.Make(version)
 	if latest.Version.LTE(vCurrent) {
 		printStep("done", "Você já está na última versão!")
@@ -50,7 +48,6 @@ func updateCLI() {
 		return
 	}
 
-	// 4. Interface de Nova Versão Encontrada
 	printStep("done", "Nova versão disponível!")
 	fmt.Println()
 
@@ -78,7 +75,7 @@ func updateCLI() {
 	fmt.Println(lipgloss.NewStyle().MarginLeft(2).Render(mainBox))
 	fmt.Println()
 
-	// 5. Pergunta se deseja prosseguir
+	// Pergunta se deseja prosseguir
 	prompt := promptui.Prompt{
 		Label:     "  Deseja baixar e instalar agora?",
 		IsConfirm: true,
@@ -89,7 +86,7 @@ func updateCLI() {
 		return
 	}
 
-	// 6. Realiza o Update com Feedback de Etapas
+	// Realiza o Update com Feedback de Etapas
 	fmt.Println()
 	printStep("active", "Baixando novo binário...")
 
@@ -106,7 +103,6 @@ func updateCLI() {
 
 	printStep("done", "Download e instalação finalizados")
 
-	// 7. Resultado Final
 	showSuccessBox(latest.Version.String(), "Atualização Concluída")
 
 	fmt.Printf("\n  %s\n", lipgloss.NewStyle().

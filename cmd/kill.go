@@ -61,7 +61,6 @@ func killUnix(port string) {
 
 	printStep("active", fmt.Sprintf("Encerrando processo %s", pidStyle.Render("("+pid+")")))
 
-	// Em Unix, o lsof -t pode retornar múltiplos PIDs separados por espaço/newline
 	pids := strings.Fields(pid)
 	for _, p := range pids {
 		cmdKill := exec.Command("kill", "-9", p)
