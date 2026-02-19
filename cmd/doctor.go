@@ -102,7 +102,6 @@ func runDoctor(cmd *cobra.Command, args []string) {
 
 	fmt.Println()
 
-	// Diagnóstico Final
 	if hasError {
 		box := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
@@ -123,13 +122,11 @@ func runDoctor(cmd *cobra.Command, args []string) {
 	fmt.Println()
 }
 
-// Função auxiliar simples para tentar pegar versão curta
 func getVersion(cmd string) string {
 	out, err := exec.Command(cmd, "--version").Output()
 	if err != nil {
 		return "detectado"
 	}
-	// Pega só a primeira linha e limita tamanho para não quebrar a tabela
 	v := strings.Split(string(out), "\n")[0]
 	if len(v) > 15 {
 		return "v" + strings.TrimSpace(v[:15]) + "..."

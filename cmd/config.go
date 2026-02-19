@@ -21,8 +21,6 @@ var configSetCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		key := strings.ToLower(args[0])
 		value := args[1]
-
-		// Guarda em memória e depois escreve no ficheiro
 		viper.Set(key, value)
 		if err := viper.WriteConfig(); err != nil {
 			HandleError(err, "Guardar Configuração")

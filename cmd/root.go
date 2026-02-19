@@ -24,22 +24,17 @@ func Execute() {
 }
 
 func init() {
-	// Diz ao Cobra para correr esta função quando arrancar
 	cobra.OnInitialize(initConfig)
 
-	// Permite passar um ficheiro de configuração customizado via flag
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "ficheiro de config (por omissão é $HOME/.devbox.yaml)")
 
 	rootCmd.SetHelpFunc(helpFunc)
 }
 
-// initConfig lê o ficheiro de configuração guardado
 func initConfig() {
 	if cfgFile != "" {
-		// Usa o ficheiro passado pela flag
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Encontra a diretoria Home do utilizador
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
@@ -53,10 +48,9 @@ func initConfig() {
 		// --- DEFININDO DEFAULTS ---
 		viper.SetDefault("author", "Devbox User")
 		viper.SetDefault("default-port", "8080")
-		viper.SetDefault("update-channel", "stable") // pode ser 'stable' ou 'beta'
+		viper.SetDefault("update-channel", "stable")
 		viper.SetDefault("template-style", "clean")
 
-		// Caminho completo para podermos criar o ficheiro se não existir
 		configPath := filepath.Join(home, ".devbox.yaml")
 
 		// Se o ficheiro não existir, cria um vazio
@@ -65,11 +59,9 @@ func initConfig() {
 		}
 	}
 
-	// Lê as variáveis de ambiente com o prefixo DEVBOX_ (ex: DEVBOX_AUTHOR)
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("devbox")
 
-	// Se encontrar o ficheiro, lê os dados
 	if viper.ReadInConfig() == nil {
 		// Pode descomentar a linha abaixo para debug inicial
 		// fmt.Println("A usar ficheiro de configuração:", viper.ConfigFileUsed())

@@ -24,7 +24,6 @@ var addCmd = &cobra.Command{
 func runAdd(cmd *cobra.Command, args []string) {
 	var resourceType, resourceName string
 
-	// Resolve o TIPO
 	if len(args) > 0 {
 		resourceType = strings.ToLower(args[0])
 	}
@@ -35,7 +34,6 @@ func runAdd(cmd *cobra.Command, args []string) {
 		resourceType = promptSelect("  O que você quer criar?", validTypes)
 	}
 
-	// Resolve o NOME
 	if len(args) > 1 {
 		resourceName = args[1]
 	} else {
@@ -96,7 +94,7 @@ func createComponent(rType, rName string) (string, error) {
 	data := map[string]string{
 		"Name":      modelName,
 		"LowerName": fileName,
-		"Author":    authorName, // Injetando o autor aqui!
+		"Author":    authorName,
 	}
 
 	tmpl, err := template.New("component").Parse(contentTemplate)
@@ -120,7 +118,6 @@ func createComponent(rType, rName string) (string, error) {
 // --- UI: Árvore Dinâmica ---
 
 func renderDynamicTree(path string) {
-	// Quebra o caminho (ex: internal/controllers/user_controller.go)
 	parts := strings.Split(filepath.ToSlash(path), "/")
 
 	folderStyle := lipgloss.NewStyle().Foreground(addDirColor).Bold(true)

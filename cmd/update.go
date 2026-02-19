@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Versão atual da CLI
 const version = "1.0.0"
 
 var updateCmd = &cobra.Command{
@@ -75,7 +74,6 @@ func updateCLI() {
 	fmt.Println(lipgloss.NewStyle().MarginLeft(2).Render(mainBox))
 	fmt.Println()
 
-	// Pergunta se deseja prosseguir
 	prompt := promptui.Prompt{
 		Label:     "  Deseja baixar e instalar agora?",
 		IsConfirm: true,

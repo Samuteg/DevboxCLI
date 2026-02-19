@@ -43,7 +43,6 @@ var (
 			Padding(0, 1)
 )
 
-// Função principal que desenha o Help
 func helpFunc(cmd *cobra.Command, args []string) {
 	if cmd.Long != "" {
 		fmt.Println(lipgloss.NewStyle().MarginLeft(2).Width(60).Render(cmd.Long))
@@ -52,18 +51,14 @@ func helpFunc(cmd *cobra.Command, args []string) {
 	}
 	fmt.Println()
 
-	// 2. Seção USAGE
 	fmt.Println(sectionStyle.Render("USAGE"))
 
-	// Monta a string de uso (ex: devbox add [flags])
 	useLine := cmd.UseLine()
 	if !strings.HasPrefix(useLine, "devbox") {
-		// Garante que o nome do binário apareça
 		useLine = "devbox " + useLine
 	}
 	fmt.Printf("  %s\n", usageStyle.Render(useLine))
 
-	// 3. Seção COMMANDS (Se houver subcomandos)
 	if len(cmd.Commands()) > 0 {
 		fmt.Println(sectionStyle.Render("COMMANDS"))
 
@@ -72,7 +67,6 @@ func helpFunc(cmd *cobra.Command, args []string) {
 				continue
 			}
 
-			// Renderiza:  init       Inicializa um novo projeto
 			fmt.Printf("  %s%s\n",
 				commandStyle.Render(c.Name()),
 				descStyle.Render(c.Short),
@@ -80,12 +74,10 @@ func helpFunc(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// 4. Seção FLAGS (Se houver flags locais)
 	if cmd.Flags().HasFlags() {
 		fmt.Println(sectionStyle.Render("FLAGS"))
 
 		cmd.Flags().VisitAll(func(f *pflag.Flag) {
-			// Formata: --nome, -n
 			var name string
 			if f.Shorthand != "" {
 				name = fmt.Sprintf("-%s, --%s", f.Shorthand, f.Name)
@@ -93,7 +85,6 @@ func helpFunc(cmd *cobra.Command, args []string) {
 				name = fmt.Sprintf("    --%s", f.Name)
 			}
 
-			// Renderiza:  --help, -h    help for this command
 			fmt.Printf("  %s%s\n",
 				flagStyle.Width(20).Render(name),
 				descStyle.Render(f.Usage),
@@ -101,7 +92,6 @@ func helpFunc(cmd *cobra.Command, args []string) {
 		})
 	}
 
-	// 5. Rodapé
 	fmt.Println()
 	footer := lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("240")).Render("  Use 'devbox [command] --help' para mais informações.")
 	fmt.Println(footer)

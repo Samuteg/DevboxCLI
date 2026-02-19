@@ -18,9 +18,9 @@ var (
 	bold     = color.New(color.Bold).SprintFunc()
 
 	// Ícones de Estado
-	iconStepTodo   = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).SetString("○") // Círculo cinza
-	iconStepActive = lipgloss.NewStyle().Foreground(primaryColor).SetString("●")          // Círculo Roxo
-	iconStepDone   = lipgloss.NewStyle().Foreground(successColor).SetString("✔")          // Check Verde
+	iconStepTodo   = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).SetString("○")
+	iconStepActive = lipgloss.NewStyle().Foreground(primaryColor).SetString("●")
+	iconStepDone   = lipgloss.NewStyle().Foreground(successColor).SetString("✔")
 
 	// Texto dos Passos
 	textStepTodo   = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
@@ -146,7 +146,6 @@ func LogWarning(message string) {
 
 // --- SPINNER & EXECUÇÃO ---
 
-// NewSpinner cria um carregamento padronizado
 func NewSpinner(message string) *spinner.Spinner {
 	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	s.Suffix = " " + info(message)
@@ -154,7 +153,6 @@ func NewSpinner(message string) *spinner.Spinner {
 	return s
 }
 
-// ExecuteCommandSilent roda comando "escondido".
 func ExecuteCommandSilent(name string, args []string, dir string) error {
 	cmd := exec.Command(name, args...)
 	cmd.Dir = dir
@@ -224,7 +222,6 @@ func printStep(status string, text string) {
 	fmt.Printf("  %s  %s\n", icon, msg)
 }
 
-// HandleError centraliza a exibição de erros na sua CLI
 func HandleError(err error, context string) {
 	if err == nil {
 		return
