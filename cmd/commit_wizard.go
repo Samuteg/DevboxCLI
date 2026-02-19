@@ -82,7 +82,7 @@ var commitWizardCmd = &cobra.Command{
 		// ---Executar Git com Feedback ---
 		fmt.Println()
 		printStep("active", "Preparando arquivos (git add .)")
-		if err := exec.Command("git", "add", ".").Run(); err != nil {
+		if exec.Command("git", "add", ".").Run() != nil {
 			return
 		}
 

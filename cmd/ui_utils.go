@@ -28,11 +28,12 @@ var (
 	textStepDone   = lipgloss.NewStyle().Foreground(lipgloss.Color("#CCC")).Strikethrough(false)
 
 	// Paleta de Cores
+	red            = lipgloss.Color("#E74C3C")
 	primaryColor   = lipgloss.Color("#7D56F4")
 	grayColor      = lipgloss.Color("#626262")
 	secondaryColor = lipgloss.Color("#00ADD8")
 	successColor   = lipgloss.Color("#27AE60")
-	errorColor     = lipgloss.Color("#E74C3C")
+	errorColor     = red
 
 	// Estilo para Mensagens de Sucesso
 	successBox = lipgloss.NewStyle().
@@ -46,8 +47,8 @@ var (
 	highlight = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
 
 	// Cores para o Cleanup
-	deleteColor  = lipgloss.Color("#E74C3C") // Vermelho
-	neutralColor = lipgloss.Color("242")     // Cinza
+	deleteColor  = red                   // Vermelho
+	neutralColor = lipgloss.Color("242") // Cinza
 
 	delStyle  = lipgloss.NewStyle().Foreground(deleteColor).Bold(true)
 	pathStyle = lipgloss.NewStyle().Foreground(neutralColor).Italic(true)
@@ -90,7 +91,7 @@ var (
 	errorBanner = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#FFF")).
-			Background(lipgloss.Color("#E74C3C")). // Vermelho vibrante
+			Background(red). // Vermelho vibrante
 			Padding(0, 1)
 
 	errorContextStyle = lipgloss.NewStyle().
@@ -101,7 +102,7 @@ var (
 				Foreground(lipgloss.Color("246")) // Cinza para o erro técnico
 
 	errorIcon = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#E74C3C")).
+			Foreground(red).
 			SetString("✘")
 
 	// Cores para o Kill

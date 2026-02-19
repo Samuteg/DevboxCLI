@@ -13,7 +13,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "devbox",
 	Short: "Devbox é a sua CLI de produtividade",
-	Long:  `Uma interface de linha de comandos para automatizar e padronizar fluxos de trabalho.`,
+	Long:  ` Uma CLI para automatizar o setup de projetos, git e tarefas do dia a dia.                                              `,
 }
 
 func Execute() {
@@ -70,7 +70,7 @@ func initConfig() {
 	viper.SetEnvPrefix("devbox")
 
 	// Se encontrar o ficheiro, lê os dados
-	if err := viper.ReadInConfig(); err == nil {
+	if viper.ReadInConfig() == nil {
 		// Pode descomentar a linha abaixo para debug inicial
 		// fmt.Println("A usar ficheiro de configuração:", viper.ConfigFileUsed())
 	}
