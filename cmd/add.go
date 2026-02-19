@@ -9,6 +9,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var validTypes = []string{"controller", "usecase", "repository", "handler"}
@@ -29,7 +30,7 @@ func runAdd(cmd *cobra.Command, args []string) {
 	}
 	if !isValidType(resourceType) {
 		if resourceType != "" {
-			fmt.Printf("  %s %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Render("Tipo '"+resourceType+"' desconhecido."))
+			fmt.Printf("  %s \n", lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Render("Tipo '"+resourceType+"' desconhecido."))
 		}
 		resourceType = promptSelect("  O que você quer criar?", validTypes)
 	}
@@ -90,9 +91,12 @@ func createComponent(rType, rName string) (string, error) {
 		return "", fmt.Errorf("o arquivo %s já existe", path)
 	}
 
+	authorName := viper.GetString("author")
+
 	data := map[string]string{
 		"Name":      modelName,
 		"LowerName": fileName,
+		"Author":    authorName, // Injetando o autor aqui!
 	}
 
 	tmpl, err := template.New("component").Parse(contentTemplate)
@@ -140,7 +144,13 @@ func renderDynamicTree(path string) {
 
 // --- Templates Embutidos (Strings) ---
 
-const controllerTmpl = `package controllers
+const controllerTmpl = `
+
+/ Criado por: {{.Author}}
+
+// Gerado via Devbox CLI
+
+package controllers
 
 import "github.com/gin-gonic/gin"
 
@@ -155,7 +165,12 @@ func (c *{{.Name}}Controller) Create(ctx *gin.Context) {
 }
 `
 
-const usecaseTmpl = `package usecase
+const usecaseTmpl = `
+/ Criado por: {{.Author}}
+
+// Gerado via Devbox CLI
+
+package usecase
 
 type {{.Name}}UseCase struct{}
 
@@ -168,14 +183,24 @@ func (u *{{.Name}}UseCase) Execute() error {
 }
 `
 
-const repositoryTmpl = `package repository
+const repositoryTmpl = `
+/ Criado por: {{.Author}}
+
+// Gerado via Devbox CLI
+
+package repository
 
 type {{.Name}}Repository interface {
 	Save() error
 }
 `
 
-const handlerTmpl = `package handlers
+const handlerTmpl = `
+/ Criado por: {{.Author}}
+
+// Gerado via Devbox CLI
+
+package handlers
 
 import "net/http"
 
@@ -191,25 +216,6 @@ func isValidType(t string) bool {
 		}
 	}
 	return false
-}
-
-func renderAddTree(name string, files []string) {
-	folderStyle := lipgloss.NewStyle().Foreground(addDirColor).Bold(true)
-	fileStyle := lipgloss.NewStyle().Foreground(addComponentColor)
-
-	// Agrupando por pastas para uma árvore bonita
-	fmt.Printf("  %s\n", folderStyle.Render("internal/"))
-
-	// Exemplo de renderização manual para o componente
-	fmt.Printf("  %s %s\n", treeBranch, folderStyle.Render("controllers/"))
-	fmt.Printf("  │   %s %s\n", treeLast, fileStyle.Render(name+"_controller.go"))
-
-	fmt.Printf("  %s %s\n", treeBranch, folderStyle.Render("models/"))
-	fmt.Printf("  │   %s %s\n", treeLast, fileStyle.Render(name+"_model.go"))
-
-	fmt.Printf("  %s %s\n", treeLast, folderStyle.Render("repository/"))
-	fmt.Printf("  %s %s %s\n", " ", treeLast, fileStyle.Render(name+"_repository.go"))
-	fmt.Println()
 }
 
 func init() {

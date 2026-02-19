@@ -9,6 +9,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var killCmd = &cobra.Command{
@@ -16,7 +17,17 @@ var killCmd = &cobra.Command{
 	Short: "Termina o processo que está a ocupar uma porta específica",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		port := args[0]
+		var port string
+		if len(args) > 0 {
+			port = args[0]
+		} else {
+			// Busca a porta padrão se o usuário não digitar nada
+			port = viper.GetString("default-port")
+			fmt.Printf("  %s %s\n\n",
+				lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Italic(true).Render("Nenhuma porta informada. Usando porta padrão:"),
+				lipgloss.NewStyle().Foreground(secondaryColor).Render(port),
+			)
+		}
 
 		// Validação de segurança para a porta
 		validPort := regexp.MustCompile(`^[0-9]+$`)
