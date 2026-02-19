@@ -36,7 +36,6 @@ var commitWizardCmd = &cobra.Command{
 			return
 		}
 
-		// Extrai apenas o tipo (antes dos dois pontos)
 		commitType := strings.TrimSpace(strings.Split(result, ":")[0])
 
 		promptScope := promptui.Prompt{
@@ -55,7 +54,6 @@ var commitWizardCmd = &cobra.Command{
 		}
 		description, _ := promptMsg.Run()
 
-		// Montar a mensagem final
 		finalMsg := commitType
 		if scope != "" {
 			finalMsg = fmt.Sprintf("%s(%s): %s", commitType, scope, description)
@@ -79,10 +77,9 @@ var commitWizardCmd = &cobra.Command{
 			return
 		}
 
-		// ---Executar Git com Feedback ---
 		fmt.Println()
 		printStep("active", "Preparando arquivos (git add .)")
-		if err := exec.Command("git", "add", ".").Run(); err != nil {
+		if exec.Command("git", "add", ".").Run() != nil {
 			return
 		}
 
@@ -95,7 +92,6 @@ var commitWizardCmd = &cobra.Command{
 			fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(4).Render(string(output)))
 		} else {
 			printStep("done", "Commit registrado")
-			// Chama a função de sucesso que você já tem
 			showCommitSuccess(commitType, scope, description)
 		}
 	},

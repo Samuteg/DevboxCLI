@@ -19,6 +19,9 @@ var doctorCmd = &cobra.Command{
 var (
 	headerColor = lipgloss.Color("#7D56F4")
 	subtleColor = lipgloss.Color("#5C5C5C")
+	failColor   = lipgloss.Color("#FF4C4C")
+
+	// Dimensões das Colunas
 
 	colNameWidth   = 15
 	colStatusWidth = 10
@@ -32,8 +35,8 @@ var (
 
 	checkStyle = lipgloss.NewStyle().Padding(0, 1)
 
-	iconSuccess = lipgloss.NewStyle().Foreground(lipgloss.Color("#04B575")).SetString("✔ PASSED")
-	iconFail    = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4C4C")).SetString("✖ FAILED")
+	iconSuccess = lipgloss.NewStyle().Foreground(failColor).SetString("✔ PASSED")
+	iconFail    = lipgloss.NewStyle().Foreground(failColor).SetString("✖ FAILED")
 )
 
 type CheckResult struct {
@@ -80,7 +83,7 @@ func runDoctor(cmd *cobra.Command, args []string) {
 		path, err := exec.LookPath(c.cmd)
 		if err != nil {
 			status = iconFail.String()
-			msg = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4C4C")).Render("Instale via: " + c.url)
+			msg = lipgloss.NewStyle().Foreground(failColor).Render("Instale via: " + c.url)
 			hasError = true
 		} else {
 			status = iconSuccess.String()
@@ -99,11 +102,10 @@ func runDoctor(cmd *cobra.Command, args []string) {
 
 	fmt.Println()
 
-	// Diagnóstico Final
 	if hasError {
 		box := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("#FF4C4C")).
+			BorderForeground(failColor).
 			Padding(0, 1).
 			Render("⚠️  Algumas ferramentas essenciais estão faltando.\nPor favor, instale-as para garantir o funcionamento total.")
 		fmt.Println(box)
@@ -120,13 +122,11 @@ func runDoctor(cmd *cobra.Command, args []string) {
 	fmt.Println()
 }
 
-// Função auxiliar simples para tentar pegar versão curta
 func getVersion(cmd string) string {
 	out, err := exec.Command(cmd, "--version").Output()
 	if err != nil {
 		return "detectado"
 	}
-	// Pega só a primeira linha e limita tamanho para não quebrar a tabela
 	v := strings.Split(string(out), "\n")[0]
 	if len(v) > 15 {
 		return "v" + strings.TrimSpace(v[:15]) + "..."

@@ -30,7 +30,6 @@ func runCleanup(cmd *cobra.Command, args []string) {
 	var removedDirs []string
 
 	for _, target := range targets {
-		// Verifica se o diretório existe
 		if _, err := os.Stat(target); err == nil {
 			printStep("active", fmt.Sprintf("Removendo %s...", target))
 
@@ -40,7 +39,6 @@ func runCleanup(cmd *cobra.Command, args []string) {
 			} else {
 				filesRemoved++
 				removedDirs = append(removedDirs, target)
-				// Feedback visual de item deletado
 				fmt.Printf("    %s %s\n", delStyle.Render("🗑"), pathStyle.Render(target+" removido"))
 			}
 		}

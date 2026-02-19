@@ -88,11 +88,10 @@ func killUnix(port string) {
 func killWindows(port string) {
 	printStep("active", "Executando PowerShell Stop-Process...")
 
-	// Comando robusto para pegar todos os processos na porta e forçar parada
 	command := fmt.Sprintf("(Get-NetTCPConnection -LocalPort %s -ErrorAction SilentlyContinue).OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force }", port)
 	cmd := exec.Command("powershell", "-Command", command)
 
-	if err := cmd.Run(); err != nil {
+	if cmd.Run() != nil {
 		printStep("todo", "Porta parece já estar livre ou acesso negado")
 	} else {
 		printStep("done", "Porta libertada")

@@ -166,7 +166,6 @@ func runInit(cmd *cobra.Command, args []string) {
 	stackName := promptSelect("🛠️  Escolha a Tech", options)
 	selectedStack := stacks[stackName]
 
-	// Verifica se tem Variantes
 	if len(selectedStack.Variants) > 0 {
 		selectedVariant := promptVariant(selectedStack.Variants)
 		selectedStack.Source = selectedVariant.Source
@@ -204,7 +203,6 @@ func handleBackend(name string, s Stack) {
 		}
 
 		// 1. Calcula o caminho relativo (remove 'templates/go' do caminho)
-		// Ex: "templates/go/cmd/main.go.tmpl" vira "cmd/main.go.tmpl"
 		relPath, err := filepath.Rel(s.Source, path)
 		if err != nil {
 			return err
@@ -223,8 +221,6 @@ func handleBackend(name string, s Stack) {
 			return os.MkdirAll(targetPath, 0755)
 		}
 
-		// 4. Se for arquivo:
-		// A mágica acontece aqui: Remove o .tmpl do nome final se existir
 		finalPath := strings.TrimSuffix(targetPath, ".tmpl")
 
 		// Lê o conteúdo do template embarcado
@@ -266,7 +262,6 @@ func handleFrontend(name string, s Stack) {
 	parts := strings.Fields(rawCmd)
 	commandName := parts[0]
 
-	// Ajuste para Windows: se for npx ou npm, adiciona .cmd
 	if runtime.GOOS == "windows" {
 		if commandName == "npx" || commandName == "npm" {
 			commandName = commandName + ".cmd"
@@ -369,7 +364,6 @@ func renderMinimalTree(projectName string, s Stack) {
 
 	fmt.Printf("  %s\n", folder.Render(projectName+"/"))
 
-	// Mostra apenas as 3 primeiras pastas de ExtraDirs para não poluir
 	limit := 3
 	if len(s.ExtraDirs) < limit {
 		limit = len(s.ExtraDirs)
