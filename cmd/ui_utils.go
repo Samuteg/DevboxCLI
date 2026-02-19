@@ -27,10 +27,6 @@ var (
 	textStepActive = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFF")).Bold(true)
 	textStepDone   = lipgloss.NewStyle().Foreground(lipgloss.Color("#CCC")).Strikethrough(false)
 
-	// Estilo para o nome do arquivo na árvore
-	fileStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#00ADD8"))            // Ciano
-	dirStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#F4D03F")).Bold(true) // Amarelo
-
 	// Paleta de Cores
 	primaryColor   = lipgloss.Color("#7D56F4")
 	grayColor      = lipgloss.Color("#626262")

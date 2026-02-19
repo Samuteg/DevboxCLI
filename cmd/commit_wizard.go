@@ -14,8 +14,6 @@ var commitWizardCmd = &cobra.Command{
 	Use:   "commit",
 	Short: "Assistente interativo para Conventional Commits",
 	Run: func(cmd *cobra.Command, args []string) {
-		// --- Passo 1: Escolher o Tipo ---
-		// Usamos uma estrutura de texto clara para o usuário, mas extraímos apenas a palavra-chave
 		items := []string{
 			"feat:     ✨ Nova funcionalidade",
 			"fix:      🐛 Correção de bug",
@@ -41,13 +39,11 @@ var commitWizardCmd = &cobra.Command{
 		// Extrai apenas o tipo (antes dos dois pontos)
 		commitType := strings.TrimSpace(strings.Split(result, ":")[0])
 
-		// --- Passo 2: Digitar o Escopo ---
 		promptScope := promptui.Prompt{
 			Label: "  🎯 Escopo (opcional)",
 		}
 		scope, _ := promptScope.Run()
 
-		// --- Passo 3: Digitar a Descrição ---
 		promptMsg := promptui.Prompt{
 			Label: "  📝 Descrição curta",
 			Validate: func(input string) error {
@@ -67,7 +63,6 @@ var commitWizardCmd = &cobra.Command{
 			finalMsg = fmt.Sprintf("%s: %s", commitType, description)
 		}
 
-		// --- Passo 4: Confirmação Visual ---
 		fmt.Println()
 		fmt.Printf("  %s %s\n",
 			lipgloss.NewStyle().Bold(true).Render("Mensagem gerada:"),
@@ -84,7 +79,7 @@ var commitWizardCmd = &cobra.Command{
 			return
 		}
 
-		// --- Passo 5: Executar Git com Feedback ---
+		// ---Executar Git com Feedback ---
 		fmt.Println()
 		printStep("active", "Preparando arquivos (git add .)")
 		if err := exec.Command("git", "add", ".").Run(); err != nil {

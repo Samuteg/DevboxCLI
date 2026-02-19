@@ -23,7 +23,7 @@ var addCmd = &cobra.Command{
 func runAdd(cmd *cobra.Command, args []string) {
 	var resourceType, resourceName string
 
-	// 1. Resolve o TIPO
+	// Resolve o TIPO
 	if len(args) > 0 {
 		resourceType = strings.ToLower(args[0])
 	}
@@ -34,14 +34,13 @@ func runAdd(cmd *cobra.Command, args []string) {
 		resourceType = promptSelect("  O que você quer criar?", validTypes)
 	}
 
-	// 2. Resolve o NOME
+	// Resolve o NOME
 	if len(args) > 1 {
 		resourceName = args[1]
 	} else {
 		resourceName = promptInput("  Qual o nome do componente?", "O nome é obrigatório", 2)
 	}
 
-	// 3. Execução com Feedback Visual
 	printStep("active", fmt.Sprintf("Gerando %s: %s", resourceType, resourceName))
 
 	path, err := createComponent(resourceType, resourceName)
@@ -51,7 +50,6 @@ func runAdd(cmd *cobra.Command, args []string) {
 
 	printStep("done", "Componente criado com sucesso!")
 
-	// 4. Árvore Dinâmica e Box de Sucesso
 	fmt.Println()
 	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("📂 Arquivo gerado:"))
 	renderDynamicTree(path)
