@@ -17,7 +17,6 @@ var cleanupCmd = &cobra.Command{
 func runCleanup(cmd *cobra.Command, args []string) {
 	fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("244")).Render("  Iniciando limpeza profunda do ambiente...\n"))
 
-	// Lista de alvos comuns (pode ser configurável no futuro)
 	targets := []string{
 		"node_modules",
 		"dist",
@@ -47,7 +46,6 @@ func runCleanup(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// 3. Resultado Final
 	if filesRemoved > 0 {
 		showCleanupSummary(removedDirs)
 	} else {
