@@ -75,6 +75,45 @@ var (
 	// Estilo para a mensagem final de commit no log
 	commitScopeStyle = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
 	commitTypeStyle  = lipgloss.NewStyle().Bold(true).Padding(0, 1).Foreground(lipgloss.Color("#FFF"))
+
+	// Versões
+	versionCurrentStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("246"))                // Cinza
+	versionLatestStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#04B575")).Bold(true) // Verde
+
+	// Banner de "Nova Versão"
+	updateBannerStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#FFF")).
+				Background(lipgloss.Color("#5D3FD3")). // Roxo vibrante
+				Padding(0, 1).
+				Bold(true)
+
+	errorBanner = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("#FFF")).
+			Background(lipgloss.Color("#E74C3C")). // Vermelho vibrante
+			Padding(0, 1)
+
+	errorContextStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#FFF")).
+				Bold(true)
+
+	errorMessageStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("246")) // Cinza para o erro técnico
+
+	errorIcon = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#E74C3C")).
+			SetString("✘")
+
+	// Cores para o Kill
+	targetColor = lipgloss.Color("#EBCB8B") // Amarelo/Dourado (Alvo)
+	killColor   = lipgloss.Color("#BF616A") // Vermelho (Eliminação)
+
+	// Estilo do PID e Porta
+	pidStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Italic(true)
+	portStyle = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
+
+	// Badge de Caveira para processos mortos
+	skullIcon = lipgloss.NewStyle().Foreground(killColor).SetString("☠")
 )
 
 // Ícones para feedback visual rápido
@@ -182,4 +221,23 @@ func printStep(status string, text string) {
 	}
 
 	fmt.Printf("  %s  %s\n", icon, msg)
+}
+
+// HandleError centraliza a exibição de erros na sua CLI
+func HandleError(err error, context string) {
+	if err == nil {
+		return
+	}
+
+	fmt.Println()
+	// Linha 1: Banner de ERRO e o Contexto (ex: Carga de Template)
+	fmt.Printf(stringHandler, errorBanner.Render(" ERROR "), errorContextStyle.Render(context))
+
+	// Linha 2: O ícone e a mensagem técnica do Go
+	fmt.Printf(stringHandler, errorIcon, errorMessageStyle.Render(err.Error()))
+
+	// Linha 3: Uma dica amigável (opcional)
+	tip := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Italic(true).Render("  💡 Dica: Verifique as permissões ou use 'devbox --help'")
+	fmt.Println(tip)
+	fmt.Println()
 }

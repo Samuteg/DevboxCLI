@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
@@ -16,12 +17,19 @@ var killCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		port := args[0]
+
+		// Validação de segurança para a porta
 		validPort := regexp.MustCompile(`^[0-9]+$`)
 		if !validPort.MatchString(port) {
-			fmt.Printf("❌ Invalid port number\n")
+			HandleError(fmt.Errorf("porta '%s' é inválida", port), "Validação de Entrada")
 			return
 		}
-		fmt.Printf("🔍 Procurando processo na porta %s...\n", port)
+
+		fmt.Printf("  %s %s %s\n\n",
+			lipgloss.NewStyle().Foreground(targetColor).Render("🎯"),
+			"Rastreando alvo na porta:",
+			portStyle.Render(port),
+		)
 
 		if runtime.GOOS == "windows" {
 			killWindows(port)
@@ -31,43 +39,66 @@ var killCmd = &cobra.Command{
 	},
 }
 
-// Lógica para Linux e macOS
 func killUnix(port string) {
-	// lsof -t -i:PORTA retorna apenas o PID
+	printStep("active", "Buscando PID via lsof...")
+
 	cmdFind := exec.Command("lsof", "-t", "-i:"+port)
 	out, err := cmdFind.Output()
 
 	if err != nil || len(out) == 0 {
-		fmt.Printf("⚠️  Nenhum processo encontrado na porta %s.\n", port)
+		printStep("todo", "Nenhum processo ativo encontrado")
 		return
 	}
 
 	pid := strings.TrimSpace(string(out))
-	validPid := regexp.MustCompile(`^[0-9]+$`)
+
+	// Segurança contra injeção no comando kill
+	validPid := regexp.MustCompile(`^[0-9\s]+$`)
 	if !validPid.MatchString(pid) {
-		fmt.Printf("❌ Invalid process ID\n")
+		HandleError(fmt.Errorf("PID retornado é suspeito"), "Segurança")
 		return
 	}
-	// kill -9 para forçar o encerramento
-	cmdKill := exec.Command("kill", "-9", pid)
-	if err := cmdKill.Run(); err != nil {
-		fmt.Printf("❌ Erro ao matar processo %s: %v\n", pid, err)
+
+	printStep("active", fmt.Sprintf("Encerrando processo %s", pidStyle.Render("("+pid+")")))
+
+	// Em Unix, o lsof -t pode retornar múltiplos PIDs separados por espaço/newline
+	pids := strings.Fields(pid)
+	for _, p := range pids {
+		cmdKill := exec.Command("kill", "-9", p)
+		if err := cmdKill.Run(); err != nil {
+			HandleError(err, "Falha ao matar processo "+p)
+			return
+		}
+	}
+
+	printStep("done", "Processo(s) terminado(s)")
+	showKillFinal(port)
+}
+
+func killWindows(port string) {
+	printStep("active", "Executando PowerShell Stop-Process...")
+
+	// Comando robusto para pegar todos os processos na porta e forçar parada
+	command := fmt.Sprintf("(Get-NetTCPConnection -LocalPort %s -ErrorAction SilentlyContinue).OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force }", port)
+	cmd := exec.Command("powershell", "-Command", command)
+
+	if err := cmd.Run(); err != nil {
+		printStep("todo", "Porta parece já estar livre ou acesso negado")
 	} else {
-		fmt.Printf("✅ Processo %s na porta %s terminado com sucesso!\n", pid, port)
+		printStep("done", "Porta libertada")
+		showKillFinal(port)
 	}
 }
 
-// Lógica para Windows
-func killWindows(port string) {
-	// netstat para encontrar o PID e taskkill para encerrar
-	command := fmt.Sprintf("(Get-NetTCPConnection -LocalPort %s).OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force }", port)
-	cmd := exec.Command("powershell", "-Command", command)
+// Helper para o feedback final estilizado
+func showKillFinal(port string) {
+	fmt.Println()
+	msg := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(successColor).
+		Render(fmt.Sprintf("✨ Porta %s limpa e pronta para uso!", port))
 
-	if cmd.Run(); errColor != nil {
-		fmt.Printf("⚠️  Não foi possível encontrar ou encerrar processos na porta %s.\n", port)
-	} else {
-		fmt.Printf("✅ Porta %s libertada com sucesso!\n", port)
-	}
+	fmt.Printf("  %s %s\n", skullIcon, msg)
 }
 
 func init() {
