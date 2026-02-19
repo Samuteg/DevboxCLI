@@ -61,6 +61,24 @@ var (
 			BorderForeground(secondaryColor).
 			Padding(0, 2).
 			MarginTop(1)
+
+	// Cores para o Add
+	addComponentColor = lipgloss.Color("#00ADD8") // Ciano para novos arquivos
+	addDirColor       = lipgloss.Color("#F1C40F") // Amarelo para diretórios
+
+	// Estilo da árvore
+	treeBranch = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("├──")
+	treeLast   = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("└──")
+
+	// Cores por tipo de commit
+	featColor     = lipgloss.Color("#A3BE8C") // Verde suave
+	fixColor      = lipgloss.Color("#BF616A") // Vermelho/Vinho
+	docsColor     = lipgloss.Color("#81A1C1") // Azul gelo
+	refactorColor = lipgloss.Color("#B48EAD") // Roxo/Lilás
+
+	// Estilo para a mensagem final de commit no log
+	commitScopeStyle = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
+	commitTypeStyle  = lipgloss.NewStyle().Bold(true).Padding(0, 1).Foreground(lipgloss.Color("#FFF"))
 )
 
 // Ícones para feedback visual rápido
