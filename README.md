@@ -127,13 +127,21 @@ go install [github.com/Samuteg/DevboxCLI@latest](https://github.com/Samuteg/Devb
 
 ---
 
-## visual
+### Opção 2: ### Via Script (Recomendado)
+
+A maneira mais rápida de instalar no Linux ou macOS:
+
+```bash
+curl -sSL [https://raw.githubusercontent.com/Samuteg/DevboxCLI/main/install.sh](https://raw.githubusercontent.com/Samuteg/DevboxCLI/main/install.sh) | bash
+```
+
+---
+
+## 📸 Demonstração Visual
 
 <div align="center">
 <p><b>Estrutura Dinâmica no comando <code>doctor</code></b></p>
 <img src="./docs/devbox_doctor.png" width="85%" style="border-radius: 10px; border: 1px solid #5D3FD3;">
-
-
 
 <p><b>Interface do <code>commit</code> Wizard</b></p>
 <img src="./docs/devbox_commit.png" width="85%" style="border-radius: 10px; border: 1px solid #5D3FD3;">
@@ -143,6 +151,3 @@ go install [github.com/Samuteg/DevboxCLI@latest](https://github.com/Samuteg/Devb
 <p>Desenvolvido com 💜 por <a href="https://www.google.com/search?q=https://github.com/Samuteg">Samuteg</a></p>
 <img src="https://www.google.com/search?q=https://img.shields.io/badge/Made%2520with-Go-00ADD8%3Fstyle%3Dflat-square%26logo%3Dgo" alt="Made with Go">
 </div>
-
-
-```
