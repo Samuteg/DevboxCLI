@@ -127,7 +127,7 @@ go install [github.com/Samuteg/DevboxCLI@latest](https://github.com/Samuteg/Devb
 
 ---
 
-### Opção 2: ### Via Script (Recomendado)
+### Opção 2: Via Script (Recomendado)
 
 A maneira mais rápida de instalar no Linux ou macOS:
 
@@ -149,5 +149,4 @@ curl -sSL [https://raw.githubusercontent.com/Samuteg/DevboxCLI/main/install.sh](
 
 <div align="center">
 <p>Desenvolvido com 💜 por <a href="https://www.google.com/search?q=https://github.com/Samuteg">Samuteg</a></p>
-<img src="https://www.google.com/search?q=https://img.shields.io/badge/Made%2520with-Go-00ADD8%3Fstyle%3Dflat-square%26logo%3Dgo" alt="Made with Go">
 </div>
