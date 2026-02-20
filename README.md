@@ -61,27 +61,31 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
     <td><b>Descrição</b></td>
   </tr>
   <tr>
-    <td><code>devbox init</code></td>
+    <td><code>DevboxCLI init</code></td>
     <td>Inicia um novo projeto (Go, Node, Python, Ruby) com estrutura profissional.</td>
   </tr>
   <tr>
-    <td><code>devbox add [tipo] [nome]</code></td>
+    <td><code>DevboxCLI add [tipo] [nome]</code></td>
     <td>Cria componentes (Controllers, Usecases) seguindo padrões de Clean Arch.</td>
   </tr>
   <tr>
-    <td><code>devbox commit</code></td>
+    <td><code>DevboxCLI commit</code></td>
     <td>Wizard interativo para mensagens de commit padronizadas.</td>
   </tr>
   <tr>
-    <td><code>devbox kill [porta]</code></td>
+    <td><code>DevboxCLI kill [porta]</code></td>
     <td>Localiza o PID e encerra o processo ocupando uma porta (ex: 8080).</td>
   </tr>
   <tr>
-    <td><code>devbox doctor</code></td>
+    <td><code>DevboxCLI config</code></td>
+    <td>Gerencia preferências no arquivo ~/.devbox.yaml</td>
+  </tr>
+  <tr>
+    <td><code>DevboxCLI doctor</code></td>
     <td>Verifica o estado das dependências instaladas na sua máquina.</td>
   </tr>
   <tr>
-    <td><code>devbox cleanup</code></td>
+    <td><code>DevboxCLI cleanup</code></td>
     <td>Limpa <code>node_modules</code>, caches e binários para liberar espaço.</td>
   </tr>
 </table>
@@ -99,6 +103,7 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
 | **Go**      | `Clean Arch`, `Simple`     | `cmd/`, `internal/entity`, `internal/usecase` |
 | **Python**  | `FastAPI`                  | `src/api`, `src/core`, `src/models`, `tests/` |
 | **Node.js** | `TypeScript`, `JavaScript` | `src/controllers`, `src/routes`, `src/models` |
+| **Ruby**    | `Simple`, `Rails`          | `app/controllers`, `app/routes`, `app/models` |
 
 ### Frontend
 
@@ -115,14 +120,29 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
 
 Se você é desenvolvedor Go, esta é a maneira mais rápida:
 
-````bash
+```bash
 go install [github.com/Samuteg/DevboxCLI@latest](https://github.com/Samuteg/DevboxCLI@latest)
+
+```
 
 ---
 
-### Opção 2: Via curl
-se voce não é desenvolvedor Go, use:
+## visual
 
-```bash
-curl -sSL https://raw.githubusercontent.com/Samuteg/DevboxCLI/main/install.sh | bash
-````
+<div align="center">
+<p><b>Estrutura Dinâmica no comando <code>doctor</code></b></p>
+<img src="./docs/devbox_doctor.png" width="85%" style="border-radius: 10px; border: 1px solid #5D3FD3;">
+
+
+
+<p><b>Interface do <code>commit</code> Wizard</b></p>
+<img src="./docs/devbox_commit.png" width="85%" style="border-radius: 10px; border: 1px solid #5D3FD3;">
+</div>
+
+<div align="center">
+<p>Desenvolvido com 💜 por <a href="https://www.google.com/search?q=https://github.com/Samuteg">Samuteg</a></p>
+<img src="https://www.google.com/search?q=https://img.shields.io/badge/Made%2520with-Go-00ADD8%3Fstyle%3Dflat-square%26logo%3Dgo" alt="Made with Go">
+</div>
+
+
+```
