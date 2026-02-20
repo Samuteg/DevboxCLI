@@ -63,6 +63,7 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
   <tr>
     <td><code>devbox init</code></td>
     <td>Inicia um novo projeto (Go, Node, Python, Ruby) com estrutura profissional.</td>
+    <img src="./docs/devbox_init.png"></img>
   </tr>
   <tr>
     <td><code>devbox add [tipo] [nome]</code></td>
