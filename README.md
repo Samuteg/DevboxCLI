@@ -72,6 +72,7 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
   <tr>
     <td><code>devbox commit</code></td>
     <td>Wizard interativo para mensagens de commit padronizadas.</td>
+    <img src="./docs/devbox_commit.png"></img>
   </tr>
   <tr>
     <td><code>devbox kill [porta]</code></td>
@@ -80,6 +81,7 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
   <tr>
     <td><code>devbox doctor</code></td>
     <td>Verifica o estado das dependências instaladas na sua máquina.</td>
+    <img src="./docs/devbox_doctor.png"></img>
   </tr>
   <tr>
     <td><code>devbox cleanup</code></td>
