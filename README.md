@@ -1,10 +1,10 @@
 <div align="center">
 
-  # 📦 Devbox CLI
-  
-  **Acelere seu desenvolvimento.**<br>
-  Crie projetos Backend e Frontend configurados com as melhores práticas<br>
-  (Clean Architecture, DDD, SOLID) em segundos.
+# 📦 Devbox CLI
+
+**Acelere seu desenvolvimento.**<br>
+Crie projetos Backend e Frontend configurados com as melhores práticas<br>
+(Clean Architecture, DDD, SOLID) em segundos.
 
   <p>
     <img src="https://img.shields.io/github/go-mod/go-version/Samuteg/DevboxCLI?style=flat-square&color=00ADD8" alt="Go Version" />
@@ -16,7 +16,7 @@
   
   <br><br>
 
-  [**Instalar Agora**](#-instalação) • [**Como Usar**](#-como-usar) • [**Stacks**](#-stacks-suportadas)
+[**Instalar Agora**](#-instalação) • [**Como Usar**](#-como-usar) • [**Stacks**](#-stacks-suportadas)
 
 </div>
 
@@ -63,7 +63,6 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
   <tr>
     <td><code>devbox init</code></td>
     <td>Inicia um novo projeto (Go, Node, Python, Ruby) com estrutura profissional.</td>
-    <img src="./docs/devbox_init.png"></img>
   </tr>
   <tr>
     <td><code>devbox add [tipo] [nome]</code></td>
@@ -72,7 +71,6 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
   <tr>
     <td><code>devbox commit</code></td>
     <td>Wizard interativo para mensagens de commit padronizadas.</td>
-    <img src="./docs/devbox_commit.png"></img>
   </tr>
   <tr>
     <td><code>devbox kill [porta]</code></td>
@@ -81,7 +79,6 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
   <tr>
     <td><code>devbox doctor</code></td>
     <td>Verifica o estado das dependências instaladas na sua máquina.</td>
-    <img src="./docs/devbox_doctor.png"></img>
   </tr>
   <tr>
     <td><code>devbox cleanup</code></td>
@@ -96,16 +93,18 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
 ## 🛠️ Stacks Suportadas
 
 ### Backend
-| Stack | Variantes | Detalhes da Arquitetura |
-| :--- | :--- | :--- |
-| **Go** | `Clean Arch`, `Simple` | `cmd/`, `internal/entity`, `internal/usecase` |
-| **Python** | `FastAPI` | `src/api`, `src/core`, `src/models`, `tests/` |
+
+| Stack       | Variantes                  | Detalhes da Arquitetura                       |
+| :---------- | :------------------------- | :-------------------------------------------- |
+| **Go**      | `Clean Arch`, `Simple`     | `cmd/`, `internal/entity`, `internal/usecase` |
+| **Python**  | `FastAPI`                  | `src/api`, `src/core`, `src/models`, `tests/` |
 | **Node.js** | `TypeScript`, `JavaScript` | `src/controllers`, `src/routes`, `src/models` |
 
 ### Frontend
-| Stack | Detalhes |
-| :--- | :--- |
-| **React** | Via Vite (TypeScript + SWC) |
+
+| Stack       | Detalhes                        |
+| :---------- | :------------------------------ |
+| **React**   | Via Vite (TypeScript + SWC)     |
 | **Next.js** | App Router, TailwindCSS, ESLint |
 
 ---
@@ -113,7 +112,17 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
 ## 🚀 Instalação
 
 ### Opção 1: Via Go Install (Recomendado)
+
 Se você é desenvolvedor Go, esta é a maneira mais rápida:
 
-```bash
+````bash
 go install [github.com/Samuteg/DevboxCLI@latest](https://github.com/Samuteg/DevboxCLI@latest)
+
+---
+
+### Opção 2: Via curl
+se voce não é desenvolvedor Go, use:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/Samuteg/DevboxCLI/main/install.sh | bash
+````
