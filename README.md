@@ -121,7 +121,7 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
 Se você é desenvolvedor Go, esta é a maneira mais rápida:
 
 ```bash
-go install [github.com/Samuteg/DevboxCLI@latest](https://github.com/Samuteg/DevboxCLI@latest)
+go install https://github.com/Samuteg/DevboxCLI@latest
 
 ```
 
@@ -132,7 +132,7 @@ go install [github.com/Samuteg/DevboxCLI@latest](https://github.com/Samuteg/Devb
 A maneira mais rápida de instalar no Linux ou macOS:
 
 ```bash
-curl -sSL [https://raw.githubusercontent.com/Samuteg/DevboxCLI/main/install.sh](https://raw.githubusercontent.com/Samuteg/DevboxCLI/main/install.sh) | bash
+curl -sSL https://raw.githubusercontent.com/Samuteg/DevboxCLI/main/install.sh | bash
 ```
 
 ---
