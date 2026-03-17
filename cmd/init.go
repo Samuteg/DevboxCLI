@@ -97,6 +97,11 @@ var stacks = map[string]Stack{
 				Source:    "templates/node/js",
 				ExtraDirs: []string{"src/controllers", "src/libs", "src/middleware", "src/routes", "src/models"},
 			},
+			{
+				Name:      "TypeScript",
+				Source:    "templates/node/ts",
+				ExtraDirs: []string{"src/controllers", "src/libs", "src/middleware", "src/routes", "src/models"},
+			},
 		},
 		RunInstall: true,
 	},
