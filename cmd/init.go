@@ -2,15 +2,15 @@ package cmd
 
 import (
 	"embed"
+	"errors"
 	"fmt"
-	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strings"
 
+	"github.com/Samuteg/DevboxCLI/internal/scaffold"
+	"github.com/Samuteg/DevboxCLI/internal/system"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -19,136 +19,7 @@ import (
 //go:embed templates/*
 var templatesFS embed.FS
 
-var (
-	pythonSubDirs = []string{
-		"src/api/routes",
-		"src/api/dependencies",
-		"src/config/settings",
-		"src/models/schemas",
-		"src/models/db",
-		"src/repository/crud",
-		"src/repository/migrations/versions",
-		"src/securities/authorizations",
-		"src/securities/hashing",
-		"src/securities/verifications",
-		"src/utilities/exceptions/http",
-		"src/utilities/formatters",
-		"src/utilities/menssages/exception/http",
-		"tests/end_to_end_tests",
-		"tests/unit_tests",
-		"tests/integration_tests",
-		"tests/security_tests",
-	}
-	golangSubDirs = []string{
-		"cmd/apps",
-		"docs/images",
-		"pkg/conf",
-		"pkg/logger",
-		"pkg/server/auth/acl",
-		"pkg/server/controller",
-		"pkg/server/model",
-		"pkg/server/router/middleware",
-		"pkg/server/storage/cache/local",
-		"pkg/server/storage/cache/redis",
-		"pkg/server/storage/db/mysql",
-	}
-	rubySubDirs = []string{
-		".github/workflows",
-		"lib/generators/rails/templates",
-		"lib/jb",
-		"test/dummy_app/app/assents/config",
-		"test/dummy_app/app/assents/javascripts",
-		"test/dummy_app/app/assents/stylesheets",
-		"test/dummy_app/app/controllers",
-		"test/dummy_app/app/helpers",
-		"test/dummy_app/app/mailers",
-		"test/dummy_app/app/models",
-		"test/dummy_app/app/views",
-		"test/dummy_app/bin",
-		"test/dummy_app/config/environments",
-		"test/dummy_app/config/initializers",
-		"test/dummy_app/config/features",
-	}
-)
-
-type Variant struct {
-	Name      string
-	Source    string
-	ExtraDirs []string
-}
-
-type Stack struct {
-	Name       string
-	IsBackend  bool
-	Source     string
-	ExtraDirs  []string
-	RunInstall bool
-	Variants   []Variant
-}
-
-var stacks = map[string]Stack{
-	"Node.js": {
-		Name:      "Node",
-		IsBackend: true,
-		Source:    "templates/node/base",
-		Variants: []Variant{
-			{
-				Name:      "JavaScript",
-				Source:    "templates/node/js",
-				ExtraDirs: []string{"src/controllers", "src/libs", "src/middleware", "src/routes", "src/models"},
-			},
-			{
-				Name:      "TypeScript",
-				Source:    "templates/node/ts",
-				ExtraDirs: []string{"src/controllers", "src/libs", "src/middleware", "src/routes", "src/models"},
-			},
-		},
-		RunInstall: true,
-	},
-	"Go": {
-		Name:      "Go",
-		IsBackend: true,
-		Source:    "templates/go",
-		Variants: []Variant{
-			{Name: "Simples (padrao)", Source: "templates/golang/simple", ExtraDirs: []string{"cmd/api", "internal/entity", "internal/infra/repository", "internal/infra/web", "internal/usecase"}},
-			{Name: "Gin", Source: "templates/golang/Gin", ExtraDirs: golangSubDirs},
-		},
-	},
-	"Python": {
-		Name:      "Python",
-		IsBackend: true,
-		Source:    "templates/python",
-		Variants: []Variant{
-			{
-				Name:   "Simples (Recomendado)",
-				Source: "templates/python/simple",
-			},
-			{
-				Name:      "FastAPI",
-				Source:    "templates/python/FastAPI",
-				ExtraDirs: prefixPaths("backend", pythonSubDirs),
-			},
-		},
-	},
-	"Ruby": {
-		Name:      "Ruby",
-		IsBackend: true,
-		Source:    "templates/ruby",
-		Variants: []Variant{
-			{
-				Name:   "simple",
-				Source: "templates/ruby/simple",
-			},
-			{
-				Name:      "Rails",
-				Source:    "templates/ruby/On_rails",
-				ExtraDirs: rubySubDirs,
-			},
-		},
-	},
-	"Next.js": {Name: "Next", IsBackend: false, Source: "pnpm create next-app@latest %s"},
-	"Vite":    {Name: "Vite", IsBackend: false, Source: "pnpm create vite@latest %s"},
-}
+var stacks = scaffold.DefaultStacks()
 
 var initCmd = &cobra.Command{
 	Use:   "init",
@@ -189,68 +60,48 @@ func runInit(cmd *cobra.Command, args []string) {
 	}
 }
 
-func handleBackend(name string, s Stack) {
+func handleBackend(name string, s scaffold.Stack) {
 	printStep("active", "Gerando arquivos e diretórios...")
 	spin := NewSpinner(info(" Escaneando templates..."))
 	spin.Start()
 
-	// Cria a pasta raiz do projeto
-	os.MkdirAll(name, 0755)
-
-	// Cria diretórios extras definidos na struct (opcional, pois o WalkDir cria tb)
-	for _, d := range s.ExtraDirs {
-		os.MkdirAll(filepath.Join(name, d), 0755)
+	if err := os.MkdirAll(name, 0755); err != nil {
+		spin.Stop()
+		HandleError(err, "Criação da pasta do projeto")
+		return
 	}
 
-	walkErr := fs.WalkDir(templatesFS, s.Source, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
+	for _, d := range s.ExtraDirs {
+		if err := os.MkdirAll(filepath.Join(name, d), 0755); err != nil {
+			spin.Stop()
+			HandleError(err, "Criação de diretórios adicionais")
+			return
 		}
+	}
 
-		// 1. Calcula o caminho relativo (remove 'templates/go' do caminho)
-		relPath, err := filepath.Rel(s.Source, path)
-		if err != nil {
-			return err
-		}
-
-		// Ignora o próprio diretório raiz (".")
-		if relPath == "." {
-			return nil
-		}
-
-		// 2. Define o caminho final no projeto do usuário
-		targetPath := filepath.Join(name, relPath)
-
-		// 3. Se for diretório, cria no disco e retorna
-		if d.IsDir() {
-			return os.MkdirAll(targetPath, 0755)
-		}
-
-		finalPath := strings.TrimSuffix(targetPath, ".tmpl")
-
-		// Lê o conteúdo do template embarcado
-		content, err := templatesFS.ReadFile(path)
-		if err != nil {
-			return err
-		}
-
-		// Escreve o arquivo no disco com o nome correto (sem .tmpl)
-		return os.WriteFile(finalPath, content, 0644)
-	})
+	walkErr := scaffold.MaterializeTemplates(templatesFS, s.Source, name)
 	spin.Stop()
-
 	if walkErr != nil {
-		fmt.Printf("%s %v\n", errColor("❌ Erro ao gerar templates:"), walkErr)
+		HandleError(walkErr, "Geração de templates")
 		return
 	}
 
 	printStep("done", "Estrutura de arquivos finalizada")
 
 	if s.RunInstall {
-		installSpin := NewSpinner(info("Instalando dependências (npm install)..."))
-		installSpin.Start()
-		ExecuteCommandSilent("npm", []string{"install"}, name)
-		installSpin.Stop()
+		packageJSONPath := filepath.Join(name, "package.json")
+		if _, err := os.Stat(packageJSONPath); err != nil {
+			printStep("todo", "package.json não encontrado; instalação automática ignorada")
+		} else {
+			installSpin := NewSpinner(info("Instalando dependências (npm install)..."))
+			installSpin.Start()
+			if err := ExecuteCommandSilent("npm", []string{"install"}, name); err != nil {
+				installSpin.Stop()
+				LogWarning("Falha ao instalar dependências automaticamente. Rode 'npm install' manualmente.")
+			} else {
+				installSpin.Stop()
+			}
+		}
 	}
 
 	fmt.Println()
@@ -260,50 +111,29 @@ func handleBackend(name string, s Stack) {
 	showSuccessBox(name, s.Name)
 }
 
-func handleFrontend(name string, s Stack) {
+func handleFrontend(name string, s scaffold.Stack) {
 	fmt.Printf("\n🎨 %s\n", info("Iniciando gerador oficial do "+s.Name))
 
 	rawCmd := fmt.Sprintf(s.Source, name)
 	parts := strings.Fields(rawCmd)
+	if len(parts) == 0 {
+		HandleError(errors.New("comando vazio para stack frontend"), "Configuração de Stack")
+		return
+	}
 	commandName := parts[0]
 
 	if runtime.GOOS == "windows" {
 		if commandName == "npx" || commandName == "npm" {
-			commandName = commandName + ".cmd"
+			commandName += ".cmd"
 		}
 	}
 
-	ExecuteCommand(commandName, parts[1:], "")
-
-	showSuccessBox(name, s.Name)
-}
-
-// --- Utilitários de Baixo Nível ---
-
-func ExecuteCommand(name string, args interface{}, dir string) {
-	validInput := regexp.MustCompile(`^[a-zA-Z0-9_\-\./\\]+$`)
-	if !validInput.MatchString(name) {
-		fmt.Printf("⚠️ Invalid command name\n")
+	if err := system.Execute(commandName, parts[1:], ""); err != nil {
+		HandleError(err, "Execução do gerador frontend")
 		return
 	}
-	var cmd *exec.Cmd
-	switch v := args.(type) {
-	case string:
-		if !validInput.MatchString(v) {
-			fmt.Printf("⚠️ Invalid command argument\n")
-			return
-		}
-		parts := strings.Fields(v)
-		cmd = exec.Command(name, parts...)
-	case []string:
-		cmd = exec.Command(name, v...)
-	}
 
-	cmd.Dir = dir
-	cmd.Stdout, cmd.Stderr, cmd.Stdin = os.Stdout, os.Stderr, os.Stdin
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("⚠️ Erro ao executar %s: %v\n", name, err)
-	}
+	showSuccessBox(name, s.Name)
 }
 
 // --- Helpers de UI ---
@@ -313,7 +143,7 @@ func promptInput(label, errMsg string, minLen int) string {
 		Label: label,
 		Validate: func(s string) error {
 			if len(s) < minLen {
-				return fmt.Errorf(errMsg)
+				return errors.New(errMsg)
 			}
 			return nil
 		},
@@ -328,20 +158,11 @@ func promptSelect(label string, items []string) string {
 	return res
 }
 
-// prefixPaths adiciona um prefixo a uma lista de subpastas
-func prefixPaths(prefix string, subs []string) []string {
-	fullPaths := make([]string, len(subs))
-	for i, sub := range subs {
-		fullPaths[i] = filepath.Join(prefix, sub)
-	}
-	return fullPaths
-}
-
 func init() {
 	rootCmd.AddCommand(initCmd)
 }
 
-func promptVariant(variants []Variant) Variant {
+func promptVariant(variants []scaffold.Variant) scaffold.Variant {
 	var items []string
 	for _, v := range variants {
 		items = append(items, v.Name)
@@ -361,8 +182,7 @@ func promptVariant(variants []Variant) Variant {
 	return variants[idx]
 }
 
-func renderMinimalTree(projectName string, s Stack) {
-	// Estilos para a árvore
+func renderMinimalTree(projectName string, s scaffold.Stack) {
 	branch := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("├──")
 	lastBranch := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("└──")
 	folder := lipgloss.NewStyle().Foreground(lipgloss.Color("#F4D03F")).Bold(true)

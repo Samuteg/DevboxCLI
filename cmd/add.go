@@ -5,14 +5,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"text/template"
 
+	"github.com/Samuteg/DevboxCLI/internal/scaffold"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var validTypes = []string{"controller", "usecase", "repository", "handler"}
+var validTypes = scaffold.ValidComponentTypes
 
 var addCmd = &cobra.Command{
 	Use:   "add [tipo] [nome]",
@@ -27,7 +27,7 @@ func runAdd(cmd *cobra.Command, args []string) {
 	if len(args) > 0 {
 		resourceType = strings.ToLower(args[0])
 	}
-	if !isValidType(resourceType) {
+	if !scaffold.IsValidComponentType(resourceType) {
 		if resourceType != "" {
 			fmt.Printf("  %s \n", lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Render("Tipo '"+resourceType+"' desconhecido."))
 		}
@@ -42,8 +42,9 @@ func runAdd(cmd *cobra.Command, args []string) {
 
 	printStep("active", fmt.Sprintf("Gerando %s: %s", resourceType, resourceName))
 
-	path, err := createComponent(resourceType, resourceName)
+	path, err := scaffold.CreateComponent(resourceType, resourceName, viper.GetString("author"))
 	if err != nil {
+		HandleError(err, "Criação de Componente")
 		os.Exit(1)
 	}
 
@@ -53,66 +54,14 @@ func runAdd(cmd *cobra.Command, args []string) {
 	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("📂 Arquivo gerado:"))
 	renderDynamicTree(path)
 
-	showSuccessBox(resourceName, strings.Title(resourceType))
+	showSuccessBox(resourceName, toTitle(resourceType))
 }
 
-// --- Lógica de Criação de Arquivos (Modificada para retornar o path) ---
-
-func createComponent(rType, rName string) (string, error) {
-	modelName := strings.Title(strings.ToLower(rName))
-	fileName := strings.ToLower(rName)
-
-	var path, contentTemplate string
-
-	switch rType {
-	case "controller":
-		path = filepath.Join("internal", "controllers", fileName+"_controller.go")
-		contentTemplate = controllerTmpl
-	case "usecase":
-		path = filepath.Join("internal", "usecase", fileName+"_usecase.go")
-		contentTemplate = usecaseTmpl
-	case "repository":
-		path = filepath.Join("internal", "repository", fileName+"_repository.go")
-		contentTemplate = repositoryTmpl
-	case "handler":
-		path = filepath.Join("internal", "handlers", fileName+"_handler.go")
-		contentTemplate = handlerTmpl
-	default:
-		return "", fmt.Errorf("tipo não implementado: %s", rType)
+func toTitle(raw string) string {
+	if raw == "" {
+		return raw
 	}
-
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
-		return "", err
-	}
-
-	if _, err := os.Stat(path); err == nil {
-		return "", fmt.Errorf("o arquivo %s já existe", path)
-	}
-
-	authorName := viper.GetString("author")
-
-	data := map[string]string{
-		"Name":      modelName,
-		"LowerName": fileName,
-		"Author":    authorName,
-	}
-
-	tmpl, err := template.New("component").Parse(contentTemplate)
-	if err != nil {
-		return "", err
-	}
-
-	f, err := os.Create(path)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-
-	if err := tmpl.Execute(f, data); err != nil {
-		return "", err
-	}
-
-	return path, nil
+	return strings.ToUpper(raw[:1]) + raw[1:]
 }
 
 // --- UI: Árvore Dinâmica ---
@@ -137,82 +86,6 @@ func renderDynamicTree(path string) {
 		}
 	}
 	fmt.Println()
-}
-
-// --- Templates Embutidos (Strings) ---
-
-const controllerTmpl = `
-
-/ Criado por: {{.Author}}
-
-// Gerado via Devbox CLI
-
-package controllers
-
-import "github.com/gin-gonic/gin"
-
-type {{.Name}}Controller struct{}
-
-func New{{.Name}}Controller() *{{.Name}}Controller {
-	return &{{.Name}}Controller{}
-}
-
-func (c *{{.Name}}Controller) Create(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{"message": "Create {{.Name}}"})
-}
-`
-
-const usecaseTmpl = `
-/ Criado por: {{.Author}}
-
-// Gerado via Devbox CLI
-
-package usecase
-
-type {{.Name}}UseCase struct{}
-
-func New{{.Name}}UseCase() *{{.Name}}UseCase {
-	return &{{.Name}}UseCase{}
-}
-
-func (u *{{.Name}}UseCase) Execute() error {
-	return nil
-}
-`
-
-const repositoryTmpl = `
-/ Criado por: {{.Author}}
-
-// Gerado via Devbox CLI
-
-package repository
-
-type {{.Name}}Repository interface {
-	Save() error
-}
-`
-
-const handlerTmpl = `
-/ Criado por: {{.Author}}
-
-// Gerado via Devbox CLI
-
-package handlers
-
-import "net/http"
-
-func Get{{.Name}}(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello {{.Name}}"))
-}
-`
-
-func isValidType(t string) bool {
-	for _, v := range validTypes {
-		if v == t {
-			return true
-		}
-	}
-	return false
 }
 
 func init() {

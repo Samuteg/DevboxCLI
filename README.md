@@ -53,6 +53,16 @@ A **Devbox CLI** elimina a fadiga de configuração inicial (`git clone` de proj
 
 <hr>
 
+## 🧱 Arquitetura Interna
+
+- `cmd/`: apenas comandos Cobra e fluxo de entrada/saída da CLI.
+- `internal/scaffold/`: regras de geração de projetos, stacks/variantes e criação de componentes.
+- `internal/system/`: utilitários de execução de comandos externos com validação.
+
+Essa separação reduz acoplamento e facilita manutenção/testes sem inflar a camada de comandos.
+
+---
+
 ## 🚀 como-usar
 
 <table>

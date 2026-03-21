@@ -176,13 +176,13 @@ func ShowSuccessBox(projectName, stack string) {
 
 	fmt.Printf("  %s %s %s\n", success(IconStep), bold("cd"), projectName)
 
-	if stack == "Go" {
+	switch stack {
+	case "Go":
 		fmt.Printf(stringHandler, success(IconStep), bold("go run main.go"))
-		if stack == "Python" {
-			fmt.Printf(stringHandler, success(IconStep), bold("python main.py"))
-		} else {
-			fmt.Printf(stringHandler, success(IconStep), bold("npm run dev"))
-		}
+	case "Python":
+		fmt.Printf(stringHandler, success(IconStep), bold("python main.py"))
+	default:
+		fmt.Printf(stringHandler, success(IconStep), bold("npm run dev"))
 	}
 	fmt.Println(color.MagentaString("---------------------------------"))
 	fmt.Println(info("  Dúvidas? Acesse nosso GitHub! 🚀\n"))
