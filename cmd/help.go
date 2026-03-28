@@ -11,7 +11,6 @@ import (
 
 // --- Estilos Específicos do Help ---
 var (
-	// Títulos das seções (USAGE, COMMANDS, FLAGS)
 	sectionStyle = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(primaryColor).
@@ -22,21 +21,17 @@ var (
 			BorderLeft(true).
 			BorderForeground(primaryColor)
 
-	// Estilo do comando (coluna da esquerda)
 	commandStyle = lipgloss.NewStyle().
-			Foreground(secondaryColor). // Ciano
+			Foreground(secondaryColor).
 			Bold(true).
-			Width(20) // Largura fixa para alinhar
+			Width(20)
 
-	// Estilo da descrição (coluna da direita)
 	descStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("246")) // Cinza
+			Foreground(lipgloss.Color("246"))
 
-	// Estilo das Flags
 	flagStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#F1C40F")) // Amarelo para flags (--help)
+			Foreground(lipgloss.Color("#F1C40F"))
 
-	// Exemplo de uso
 	usageStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFF")).
 			Background(lipgloss.Color("#333")).

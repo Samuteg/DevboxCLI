@@ -21,13 +21,10 @@ var (
 	subtleColor = lipgloss.Color("#5C5C5C")
 	failColor   = lipgloss.Color("#FF4C4C")
 
-	// Dimensões das Colunas
-
 	colNameWidth   = 15
 	colStatusWidth = 10
 	colMsgWidth    = 40
 
-	// Estilos das Células
 	headerStyle = lipgloss.NewStyle().
 			Foreground(headerColor).
 			Bold(true).

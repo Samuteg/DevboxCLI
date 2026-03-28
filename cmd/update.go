@@ -50,7 +50,6 @@ func updateCLI() {
 	printStep("done", "Nova versão disponível!")
 	fmt.Println()
 
-	// Box de comparação de versões
 	compareBox := lipgloss.JoinHorizontal(lipgloss.Center,
 		lipgloss.NewStyle().Foreground(lipgloss.Color("246")).Render("v"+version),
 		lipgloss.NewStyle().Padding(0, 2).Foreground(lipgloss.Color("240")).Render("→"),

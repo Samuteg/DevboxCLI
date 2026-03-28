@@ -21,7 +21,6 @@ var killCmd = &cobra.Command{
 		if len(args) > 0 {
 			port = args[0]
 		} else {
-			// Busca a porta padrão se o usuário não digitar nada
 			port = viper.GetString("default-port")
 			fmt.Printf("  %s %s\n\n",
 				lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Italic(true).Render("Nenhuma porta informada. Usando porta padrão:"),
@@ -29,7 +28,6 @@ var killCmd = &cobra.Command{
 			)
 		}
 
-		// Validação de segurança para a porta
 		validPort := regexp.MustCompile(`^[0-9]+$`)
 		if !validPort.MatchString(port) {
 			HandleError(fmt.Errorf("porta '%s' é inválida", port), "Validação de Entrada")
@@ -63,7 +61,6 @@ func killUnix(port string) {
 
 	pid := strings.TrimSpace(string(out))
 
-	// Segurança contra injeção no comando kill
 	validPid := regexp.MustCompile(`^[0-9\s]+$`)
 	if !validPid.MatchString(pid) {
 		HandleError(fmt.Errorf("PID retornado é suspeito"), "Segurança")
@@ -99,7 +96,6 @@ func killWindows(port string) {
 	}
 }
 
-// Helper para o feedback final estilizado
 func showKillFinal(port string) {
 	fmt.Println()
 	msg := lipgloss.NewStyle().

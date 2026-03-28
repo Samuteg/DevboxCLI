@@ -84,14 +84,14 @@ var (
 	// Banner de "Nova Versão"
 	updateBannerStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#FFF")).
-				Background(lipgloss.Color("#5D3FD3")). // Roxo vibrante
+				Background(lipgloss.Color("#5D3FD3")).
 				Padding(0, 1).
 				Bold(true)
 
 	errorBanner = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#FFF")).
-			Background(red). // Vermelho vibrante
+			Background(red).
 			Padding(0, 1)
 
 	errorContextStyle = lipgloss.NewStyle().
@@ -99,21 +99,18 @@ var (
 				Bold(true)
 
 	errorMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("246")) // Cinza para o erro técnico
+				Foreground(lipgloss.Color("246"))
 
 	errorIcon = lipgloss.NewStyle().
 			Foreground(red).
 			SetString("✘")
 
-	// Cores para o Kill
-	targetColor = lipgloss.Color("#EBCB8B") // Amarelo/Dourado (Alvo)
-	killColor   = lipgloss.Color("#BF616A") // Vermelho (Eliminação)
+	targetColor = lipgloss.Color("#EBCB8B")
+	killColor   = lipgloss.Color("#BF616A")
 
-	// Estilo do PID e Porta
 	pidStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Italic(true)
 	portStyle = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
 
-	// Badge de Caveira para processos mortos
 	skullIcon = lipgloss.NewStyle().Foreground(killColor).SetString("☠")
 )
 
@@ -189,7 +186,6 @@ func ShowSuccessBox(projectName, stack string) {
 }
 
 func PrintBanner() {
-	// Gradiente simulado (Texto Roxo + Setinha Ciano)
 	style := lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Bold(true)
 
 	asciiArt := `
@@ -228,13 +224,10 @@ func HandleError(err error, context string) {
 	}
 
 	fmt.Println()
-	// Linha 1: Banner de ERRO e o Contexto (ex: Carga de Template)
 	fmt.Printf(stringHandler, errorBanner.Render(" ERROR "), errorContextStyle.Render(context))
 
-	// Linha 2: O ícone e a mensagem técnica do Go
 	fmt.Printf(stringHandler, errorIcon, errorMessageStyle.Render(err.Error()))
 
-	// Linha 3: Uma dica amigável (opcional)
 	tip := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Italic(true).Render("  💡 Dica: Verifique as permissões ou use 'devbox --help'")
 	fmt.Println(tip)
 	fmt.Println()
