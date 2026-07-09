@@ -104,7 +104,7 @@ func DefaultStacks() map[string]Stack {
 			Source:    "templates/python",
 			Variants: []Variant{
 				{Name: "Simples (Recomendado)", Source: "templates/python/simple.zip"},
-				{Name: "FastAPI", Source: "templates/python/FastAPI.zip", ExtraDirs: prefixPaths("backend", pythonSubDirs)},
+				{Name: "FastAPI", Source: "templates/python/python.zip", ExtraDirs: prefixPaths("backend", pythonSubDirs)},
 			},
 		},
 		"Ruby": {
@@ -113,11 +113,17 @@ func DefaultStacks() map[string]Stack {
 			Source:    "templates/ruby",
 			Variants: []Variant{
 				{Name: "simple", Source: "templates/ruby/simple.zip"},
-				{Name: "Rails", Source: "templates/ruby/On_rails.zip", ExtraDirs: rubySubDirs},
+				{Name: "Rails", Source: "templates/ruby/ruby.zip", ExtraDirs: rubySubDirs},
 			},
 		},
 		"Next.js": {Name: "Next", IsBackend: false, Source: "pnpm create next-app@latest %s"},
-		"Vite":    {Name: "Vite", IsBackend: false, Source: "pnpm create vite@latest %s"},
+		"Java": {
+			Name:      "Java",
+			IsBackend: true,
+			Source:    "templates/java/java.zip",
+			ExtraDirs: []string{"src/main/java/com", "src/test/java/com", "src/main/resources"},
+		},
+		"Vite": {Name: "Vite", IsBackend: false, Source: "pnpm create vite@latest %s"},
 	}
 }
 
