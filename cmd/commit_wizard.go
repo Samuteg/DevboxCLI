@@ -135,5 +135,5 @@ func showCommitSuccess(cType, scope, msg string) {
 }
 
 func init() {
-	rootCmd.AddCommand(commitWizardCmd)
+	projectCmd.AddCommand(commitWizardCmd)
 }

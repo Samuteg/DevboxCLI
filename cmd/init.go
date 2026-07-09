@@ -159,7 +159,7 @@ func promptSelect(label string, items []string) string {
 }
 
 func init() {
-	rootCmd.AddCommand(initCmd)
+	projectCmd.AddCommand(initCmd)
 }
 
 func promptVariant(variants []scaffold.Variant) scaffold.Variant {

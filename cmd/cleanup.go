@@ -69,5 +69,5 @@ func showCleanupSummary(dirs []string) {
 }
 
 func init() {
-	rootCmd.AddCommand(cleanupCmd)
+	projectCmd.AddCommand(cleanupCmd)
 }

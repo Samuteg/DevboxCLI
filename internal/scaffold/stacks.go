@@ -78,12 +78,12 @@ func DefaultStacks() map[string]Stack {
 			Variants: []Variant{
 				{
 					Name:      "JavaScript",
-					Source:    "templates/node/js",
+					Source:    "templates/node/js.zip",
 					ExtraDirs: []string{"src/controllers", "src/libs", "src/middleware", "src/routes", "src/models"},
 				},
 				{
 					Name:      "TypeScript",
-					Source:    "templates/node/ts",
+					Source:    "templates/node/ts.zip",
 					ExtraDirs: []string{"src/controllers", "src/libs", "src/middleware", "src/routes", "src/models"},
 				},
 			},
@@ -94,8 +94,8 @@ func DefaultStacks() map[string]Stack {
 			IsBackend: true,
 			Source:    "templates/go",
 			Variants: []Variant{
-				{Name: "Simples (padrao)", Source: "templates/golang/simple", ExtraDirs: []string{"cmd/api", "internal/entity", "internal/infra/repository", "internal/infra/web", "internal/usecase"}},
-				{Name: "Gin", Source: "templates/golang/Gin", ExtraDirs: golangSubDirs},
+				{Name: "Simples (padrao)", Source: "templates/golang/simple.zip", ExtraDirs: []string{"cmd/api", "internal/entity", "internal/infra/repository", "internal/infra/web", "internal/usecase"}},
+				{Name: "Gin", Source: "templates/golang/Gin.zip", ExtraDirs: golangSubDirs},
 			},
 		},
 		"Python": {
@@ -103,8 +103,8 @@ func DefaultStacks() map[string]Stack {
 			IsBackend: true,
 			Source:    "templates/python",
 			Variants: []Variant{
-				{Name: "Simples (Recomendado)", Source: "templates/python/simple"},
-				{Name: "FastAPI", Source: "templates/python/FastAPI", ExtraDirs: prefixPaths("backend", pythonSubDirs)},
+				{Name: "Simples (Recomendado)", Source: "templates/python/simple.zip"},
+				{Name: "FastAPI", Source: "templates/python/FastAPI.zip", ExtraDirs: prefixPaths("backend", pythonSubDirs)},
 			},
 		},
 		"Ruby": {
@@ -112,8 +112,8 @@ func DefaultStacks() map[string]Stack {
 			IsBackend: true,
 			Source:    "templates/ruby",
 			Variants: []Variant{
-				{Name: "simple", Source: "templates/ruby/simple"},
-				{Name: "Rails", Source: "templates/ruby/On_rails", ExtraDirs: rubySubDirs},
+				{Name: "simple", Source: "templates/ruby/simple.zip"},
+				{Name: "Rails", Source: "templates/ruby/On_rails.zip", ExtraDirs: rubySubDirs},
 			},
 		},
 		"Next.js": {Name: "Next", IsBackend: false, Source: "pnpm create next-app@latest %s"},

@@ -89,5 +89,5 @@ func renderDynamicTree(path string) {
 }
 
 func init() {
-	rootCmd.AddCommand(addCmd)
+	projectCmd.AddCommand(addCmd)
 }

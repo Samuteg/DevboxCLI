@@ -1,41 +1,63 @@
 package scaffold
 
 import (
+	"archive/zip"
+	"bytes"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
-func MaterializeTemplates(fsys fs.FS, sourceDir, targetRoot string) error {
-	return fs.WalkDir(fsys, sourceDir, func(path string, d fs.DirEntry, err error) error {
+func MaterializeTemplates(fsys fs.FS, sourceZip, targetRoot string) error {
+	f, err := fsys.Open(sourceZip)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return err
+	}
+
+	zipReader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err != nil {
+		return err
+	}
+
+	for _, file := range zipReader.File {
+		targetPath := filepath.Join(targetRoot, file.Name)
+
+		if file.FileInfo().IsDir() {
+			if err := os.MkdirAll(targetPath, 0755); err != nil {
+				return err
+			}
+			continue
+		}
+
+		if err := os.MkdirAll(filepath.Dir(targetPath), 0755); err != nil {
+			return err
+		}
+
+		rc, err := file.Open()
 		if err != nil {
 			return err
 		}
 
-		relPath, err := filepath.Rel(sourceDir, path)
+		outFile, err := os.OpenFile(targetPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		if err != nil {
+			rc.Close()
+			return err
+		}
+
+		_, err = io.Copy(outFile, rc)
+		rc.Close()
+		outFile.Close()
 		if err != nil {
 			return err
 		}
-		if relPath == "." {
-			return nil
-		}
+	}
 
-		targetPath := filepath.Join(targetRoot, relPath)
-		if d.IsDir() {
-			return os.MkdirAll(targetPath, 0755)
-		}
-
-		finalPath := strings.TrimSuffix(targetPath, ".tmpl")
-		if err := os.MkdirAll(filepath.Dir(finalPath), 0755); err != nil {
-			return err
-		}
-
-		content, err := fs.ReadFile(fsys, path)
-		if err != nil {
-			return err
-		}
-
-		return os.WriteFile(finalPath, content, 0644)
-	})
+	return nil
 }
