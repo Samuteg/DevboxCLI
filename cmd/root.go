@@ -32,38 +32,29 @@ func init() {
 }
 
 func initConfig() {
+	viper.SetDefault("author", "Devbox User")
+	viper.SetDefault("default-port", "8080")
+	viper.SetDefault("update-channel", "stable")
+	viper.SetDefault("template-style", "clean")
+
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
-
-		// Define o nome e o caminho do arquivo
 		viper.AddConfigPath(home)
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".devbox")
 		viper.AutomaticEnv()
-		viper.SetEnvPrefix("devbox")
-
-		// --- DEFININDO DEFAULTS ---
-		viper.SetDefault("author", "Devbox User")
-		viper.SetDefault("default-port", "8080")
-		viper.SetDefault("update-channel", "stable")
-		viper.SetDefault("template-style", "clean")
-
+		viper.SetEnvPrefix("DEVBOX")
 		configPath := filepath.Join(home, ".devbox.yaml")
-
-		// Se o arquivo não existir, cria um vazio
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
 			os.WriteFile(configPath, []byte(""), 0644)
 		}
 	}
 
 	viper.AutomaticEnv()
-	viper.SetEnvPrefix("devbox")
+	viper.SetEnvPrefix("DEVBOX")
 
-	if viper.ReadInConfig() == nil {
-		// Pode descomentar a linha abaixo para debug inicial
-		// fmt.Println("A usar arquivo de configuração:", viper.ConfigFileUsed())
-	}
+	_ = viper.ReadInConfig()
 }
