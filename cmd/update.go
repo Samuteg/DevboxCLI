@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/blang/semver"
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/manifoldco/promptui"
 	"github.com/rhysd/go-github-selfupdate/selfupdate"
 	"github.com/spf13/cobra"
 )
@@ -71,13 +71,13 @@ func updateCLI() {
 	fmt.Println(lipgloss.NewStyle().MarginLeft(2).Render(mainBox))
 	fmt.Println()
 
-	prompt := promptui.Prompt{
-		Label:     "  Deseja baixar e instalar agora?",
-		IsConfirm: true,
-		Templates: newPromptTemplates(),
-	}
-
-	if _, err := prompt.Run(); err != nil {
+	var confirmed bool
+	if err := huh.NewConfirm().
+		Title("Deseja baixar e instalar agora?").
+		Affirmative("Sim").
+		Negative("Não").
+		Value(&confirmed).
+		Run(); err != nil || !confirmed {
 		fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("242")).Render("  Update ignorado. Você pode atualizar mais tarde."))
 		return
 	}
