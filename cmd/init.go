@@ -12,8 +12,8 @@ import (
 
 	"github.com/Samuteg/DevboxCLI/internal/scaffold"
 	"github.com/Samuteg/DevboxCLI/internal/system"
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
 
@@ -139,24 +139,32 @@ func handleFrontend(name string, s scaffold.Stack) {
 }
 
 func promptInput(label, errMsg string, minLen int) string {
-	p := promptui.Prompt{
-		Label:     label,
-		Templates: newPromptTemplates(),
-		Validate: func(s string) error {
+	var value string
+	_ = huh.NewInput().
+		Title(label).
+		Validate(func(s string) error {
 			if len(s) < minLen {
 				return errors.New(errMsg)
 			}
 			return nil
-		},
-	}
-	res, _ := p.Run()
-	return res
+		}).
+		Value(&value).
+		Run()
+	return value
 }
 
 func promptSelect(label string, items []string) string {
-	p := promptui.Select{Label: label, Items: items, Templates: newSelectTemplates()}
-	_, res, _ := p.Run()
-	return res
+	var value string
+	options := make([]huh.Option[string], len(items))
+	for i, item := range items {
+		options[i] = huh.NewOption(item, item)
+	}
+	_ = huh.NewSelect[string]().
+		Title(label).
+		Options(options...).
+		Value(&value).
+		Run()
+	return value
 }
 
 func init() {
@@ -164,24 +172,23 @@ func init() {
 }
 
 func promptVariant(variants []scaffold.Variant) scaffold.Variant {
-	var items []string
+	var value string
+	options := make([]huh.Option[string], len(variants))
+	for i, v := range variants {
+		options[i] = huh.NewOption(v.Name, v.Name)
+	}
+	_ = huh.NewSelect[string]().
+		Title("Escolha uma variante").
+		Options(options...).
+		Value(&value).
+		Run()
 	for _, v := range variants {
-		items = append(items, v.Name)
+		if v.Name == value {
+			return v
+		}
 	}
-
-	prompt := promptui.Select{
-		Label:     "⚡ Escolha uma variante",
-		Items:     items,
-		Size:      5,
-		Templates: newSelectTemplates(),
-	}
-
-	idx, _, err := prompt.Run()
-	if err != nil {
-		os.Exit(1)
-	}
-
-	return variants[idx]
+	os.Exit(1)
+	return scaffold.Variant{}
 }
 
 func renderMinimalTree(projectName string, s scaffold.Stack) {
