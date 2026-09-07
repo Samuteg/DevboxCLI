@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -29,18 +30,27 @@ var commitWizardCmd = &cobra.Command{
 			Value(&commitType).
 			Run()
 		if err != nil {
-			fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("  Commit cancelado."))
-			return
+			if promptAborted(err) {
+				os.Exit(0)
+			}
+			HandleError(err, "Tipo de alteração")
+			os.Exit(1)
 		}
 
 		var scope string
-		_ = huh.NewInput().
+		if err := huh.NewInput().
 			Title("  🎯 Escopo (opcional)").
 			Value(&scope).
-			Run()
+			Run(); err != nil {
+			if promptAborted(err) {
+				os.Exit(0)
+			}
+			HandleError(err, "Escopo do commit")
+			os.Exit(1)
+		}
 
 		var description string
-		_ = huh.NewInput().
+		if err := huh.NewInput().
 			Title("  📝 Descrição curta").
 			Validate(func(s string) error {
 				if len(s) < 3 {
@@ -49,7 +59,13 @@ var commitWizardCmd = &cobra.Command{
 				return nil
 			}).
 			Value(&description).
-			Run()
+			Run(); err != nil {
+			if promptAborted(err) {
+				os.Exit(0)
+			}
+			HandleError(err, "Descrição do commit")
+			os.Exit(1)
+		}
 
 		finalMsg := commitType
 		if scope != "" {
@@ -70,7 +86,14 @@ var commitWizardCmd = &cobra.Command{
 			Affirmative("Sim").
 			Negative("Não").
 			Value(&confirmed).
-			Run(); err != nil || !confirmed {
+			Run(); err != nil {
+			if promptAborted(err) {
+				os.Exit(0)
+			}
+			HandleError(err, "Confirmação do commit")
+			os.Exit(1)
+		}
+		if !confirmed {
 			fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Render("  Commit cancelado pelo usuário."))
 			return
 		}

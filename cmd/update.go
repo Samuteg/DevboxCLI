@@ -77,7 +77,14 @@ func updateCLI() {
 		Affirmative("Sim").
 		Negative("Não").
 		Value(&confirmed).
-		Run(); err != nil || !confirmed {
+		Run(); err != nil {
+		if promptAborted(err) {
+			os.Exit(0)
+		}
+		HandleError(err, "Confirmação de atualização")
+		os.Exit(1)
+	}
+	if !confirmed {
 		fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("242")).Render("  Update ignorado. Você pode atualizar mais tarde."))
 		return
 	}

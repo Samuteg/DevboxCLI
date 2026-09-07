@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/fatih/color"
 )
@@ -187,6 +188,15 @@ func printStep(status string, text string) {
 	}
 
 	fmt.Printf("  %s  %s\n", icon, msg)
+}
+
+// promptAborted diz se o usuário cancelou (Ctrl+C) e já imprime aviso.
+func promptAborted(err error) bool {
+	if err == huh.ErrUserAborted {
+		fmt.Println("  Operação cancelada.")
+		return true
+	}
+	return false
 }
 
 func HandleError(err error, context string) {

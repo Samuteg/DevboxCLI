@@ -140,7 +140,7 @@ func handleFrontend(name string, s scaffold.Stack) {
 
 func promptInput(label, errMsg string, minLen int) string {
 	var value string
-	_ = huh.NewInput().
+	if err := huh.NewInput().
 		Title(label).
 		Validate(func(s string) error {
 			if len(s) < minLen {
@@ -149,7 +149,13 @@ func promptInput(label, errMsg string, minLen int) string {
 			return nil
 		}).
 		Value(&value).
-		Run()
+		Run(); err != nil {
+		if promptAborted(err) {
+			os.Exit(0)
+		}
+		HandleError(err, "Entrada do usuário")
+		os.Exit(1)
+	}
 	return value
 }
 
@@ -159,11 +165,17 @@ func promptSelect(label string, items []string) string {
 	for i, item := range items {
 		options[i] = huh.NewOption(item, item)
 	}
-	_ = huh.NewSelect[string]().
+	if err := huh.NewSelect[string]().
 		Title(label).
 		Options(options...).
 		Value(&value).
-		Run()
+		Run(); err != nil {
+		if promptAborted(err) {
+			os.Exit(0)
+		}
+		HandleError(err, "Seleção de opção")
+		os.Exit(1)
+	}
 	return value
 }
 
@@ -177,11 +189,17 @@ func promptVariant(variants []scaffold.Variant) scaffold.Variant {
 	for i, v := range variants {
 		options[i] = huh.NewOption(v.Name, v.Name)
 	}
-	_ = huh.NewSelect[string]().
+	if err := huh.NewSelect[string]().
 		Title("⚡ Escolha uma variante").
 		Options(options...).
 		Value(&value).
-		Run()
+		Run(); err != nil {
+		if promptAborted(err) {
+			os.Exit(0)
+		}
+		HandleError(err, "Seleção de variante")
+		os.Exit(1)
+	}
 	for _, v := range variants {
 		if v.Name == value {
 			return v
