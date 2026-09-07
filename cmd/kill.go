@@ -54,30 +54,40 @@ func killUnix(port string) {
 	cmdFind := exec.Command("lsof", "-t", "-i:"+port)
 	out, err := cmdFind.Output()
 
-	if err != nil || len(out) == 0 {
-		printStep("todo", "Nenhum processo ativo encontrado")
+	if err != nil || len(strings.TrimSpace(string(out))) == 0 {
+		printStep("todo", "Nenhum processo ativo encontrado na porta")
 		return
 	}
 
 	pid := strings.TrimSpace(string(out))
 
-	validPid := regexp.MustCompile(`^[0-9\s]+$`)
+	validPid := regexp.MustCompile(`^[0-9]+$`)
 	if !validPid.MatchString(pid) {
-		HandleError(fmt.Errorf("PID retornado é suspeito"), "Segurança")
+		HandleError(fmt.Errorf("PID retornado é suspeito: %q", pid), "Segurança")
 		return
 	}
 
 	printStep("active", fmt.Sprintf("Encerrando processo %s", pidStyle.Render("("+pid+")")))
 
-	for p := range strings.FieldsSeq(pid) {
-		cmdKill := exec.Command("kill", "-9", p)
-		if err := cmdKill.Run(); err != nil {
+	killed := 0
+	for _, p := range strings.Fields(pid) {
+		if exec.Command("kill", p).Run() == nil {
+			killed++
+			continue
+		}
+		if err := exec.Command("kill", "-9", p).Run(); err != nil {
 			HandleError(err, "Falha ao matar processo "+p)
 			return
 		}
+		killed++
 	}
 
-	printStep("done", "Processo(s) terminado(s)")
+	if killed == 0 {
+		printStep("todo", "Nenhum processo foi terminado")
+		return
+	}
+
+	printStep("done", fmt.Sprintf("Processo(s) terminado(s): %d", killed))
 	showKillFinal(port)
 }
 
