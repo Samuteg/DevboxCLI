@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 
 	"github.com/Samuteg/DevboxCLI/internal/scaffold"
@@ -38,6 +39,7 @@ func runInit(cmd *cobra.Command, args []string) {
 			options = append(options, name)
 		}
 	}
+	slices.Sort(options)
 
 	stackName := promptSelect("🛠️  Escolha a Tech", options)
 	selectedStack := stacks[stackName]
