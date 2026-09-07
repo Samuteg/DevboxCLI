@@ -67,6 +67,8 @@ var commitWizardCmd = &cobra.Command{
 		var confirmed bool
 		if err := huh.NewConfirm().
 			Title("  Confirmar commit?").
+			Affirmative("Sim").
+			Negative("Não").
 			Value(&confirmed).
 			Run(); err != nil || !confirmed {
 			fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Render("  Commit cancelado pelo usuário."))
