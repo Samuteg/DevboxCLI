@@ -11,8 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const version = "1.0.1"
-
 var updateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Atualiza a devbox para a versão mais recente",
@@ -36,14 +34,14 @@ func updateCLI() {
 	}
 
 	// Compara as versões (SemVer)
-	vCurrent, _ := semver.Make(version)
+	vCurrent, _ := semver.Make(Version)
 	if latest.Version.LTE(vCurrent) {
 		printStep("done", "Você já está na última versão!")
 
 		fmt.Println(lipgloss.NewStyle().
 			MarginLeft(4).
 			Foreground(lipgloss.Color("240")).
-			Render(fmt.Sprintf("Versão atual: v%s", version)))
+			Render(fmt.Sprintf("Versão atual: v%s", Version)))
 		return
 	}
 
@@ -51,7 +49,7 @@ func updateCLI() {
 	fmt.Println()
 
 	compareBox := lipgloss.JoinHorizontal(lipgloss.Center,
-		lipgloss.NewStyle().Foreground(lipgloss.Color("246")).Render("v"+version),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("246")).Render("v"+Version),
 		lipgloss.NewStyle().Padding(0, 2).Foreground(lipgloss.Color("240")).Render("→"),
 		lipgloss.NewStyle().Foreground(lipgloss.Color("#04B575")).Bold(true).Render("v"+latest.Version.String()),
 	)

@@ -187,7 +187,7 @@ func PrintBanner() {
 /_____/_____/  |___/_____/\____/_/|_|
 `
 	fmt.Println(style.Render(asciiArt))
-	fmt.Println(lipgloss.NewStyle().Foreground(ColorSubtle).PaddingLeft(2).Render("v1.0.0 • Automation Tool"))
+	fmt.Println(lipgloss.NewStyle().Foreground(ColorSubtle).PaddingLeft(2).Render(fmt.Sprintf("v%s • Devbox CLI", Version)))
 	fmt.Println()
 }
 
