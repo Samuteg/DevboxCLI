@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
 
@@ -14,49 +14,42 @@ var commitWizardCmd = &cobra.Command{
 	Use:   "commit",
 	Short: "Assistente interativo para Conventional Commits",
 	Run: func(cmd *cobra.Command, args []string) {
-		items := []string{
-			"feat:     ✨ Nova funcionalidade",
-			"fix:      🐛 Correção de bug",
-			"docs:     📝 Documentação",
-			"style:    🎨 Formatação/Estilo",
-			"refactor: 🔁 Refatoração",
-			"test:     🧪 Testes",
-			"chore:    🔧 Manutenção",
-		}
-
-		promptType := promptui.Select{
-			Label:     lipgloss.NewStyle().Foreground(primaryColor).Render("Tipo de alteração"),
-			Items:     items,
-			Size:      7,
-			Templates: newSelectTemplates(),
-		}
-
-		_, result, err := promptType.Run()
+		var commitType string
+		err := huh.NewSelect[string]().
+			Title("Tipo de alteração").
+			Options(
+				huh.NewOption("feat:     ✨ Nova funcionalidade", "feat"),
+				huh.NewOption("fix:      🐛 Correção de bug", "fix"),
+				huh.NewOption("docs:     📝 Documentação", "docs"),
+				huh.NewOption("style:    🎨 Formatação/Estilo", "style"),
+				huh.NewOption("refactor: 🔁 Refatoração", "refactor"),
+				huh.NewOption("test:     🧪 Testes", "test"),
+				huh.NewOption("chore:    🔧 Manutenção", "chore"),
+			).
+			Value(&commitType).
+			Run()
 		if err != nil {
 			fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("  Commit cancelado."))
 			return
 		}
 
-		commitType, _, _ := strings.Cut(result, ":")
-		commitType = strings.TrimSpace(commitType)
+		var scope string
+		_ = huh.NewInput().
+			Title("  🎯 Escopo (opcional)").
+			Value(&scope).
+			Run()
 
-		promptScope := promptui.Prompt{
-			Label:     "  🎯 Escopo (opcional)",
-			Templates: newPromptTemplates(),
-		}
-		scope, _ := promptScope.Run()
-
-		promptMsg := promptui.Prompt{
-			Label:     "  📝 Descrição curta",
-			Templates: newPromptTemplates(),
-			Validate: func(input string) error {
-				if len(input) < 3 {
+		var description string
+		_ = huh.NewInput().
+			Title("  📝 Descrição curta").
+			Validate(func(s string) error {
+				if len(s) < 3 {
 					return fmt.Errorf("a descrição precisa de pelo menos 3 caracteres")
 				}
 				return nil
-			},
-		}
-		description, _ := promptMsg.Run()
+			}).
+			Value(&description).
+			Run()
 
 		finalMsg := commitType
 		if scope != "" {
@@ -71,13 +64,11 @@ var commitWizardCmd = &cobra.Command{
 			lipgloss.NewStyle().Foreground(secondaryColor).Render(finalMsg),
 		)
 
-		promptConfirm := promptui.Prompt{
-			Label:     "  Confirmar commit?",
-			IsConfirm: true,
-			Templates: newPromptTemplates(),
-		}
-
-		if _, err := promptConfirm.Run(); err != nil {
+		var confirmed bool
+		if err := huh.NewConfirm().
+			Title("  Confirmar commit?").
+			Value(&confirmed).
+			Run(); err != nil || !confirmed {
 			fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Render("  Commit cancelado pelo usuário."))
 			return
 		}
