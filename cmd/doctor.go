@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
@@ -121,10 +122,12 @@ func getVersion(cmd string) string {
 		return "detectado"
 	}
 	v := strings.Split(string(out), "\n")[0]
-	if len(v) > 15 {
-		return "v" + strings.TrimSpace(v[:15]) + "..."
+	v = strings.TrimSpace(v)
+	if utf8.RuneCountInString(v) > 15 {
+		runes := []rune(v)
+		return string(runes[:15]) + "..."
 	}
-	return strings.TrimSpace(v)
+	return v
 }
 
 func init() {
