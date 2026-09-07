@@ -90,7 +90,7 @@ func killWindows(port string) {
 	if cmd.Run() != nil {
 		printStep("todo", "Porta parece já estar livre ou acesso negado")
 	} else {
-		printStep("done", "Porta libertada")
+		printStep("done", "Porta liberada")
 		showKillFinal(port)
 	}
 }

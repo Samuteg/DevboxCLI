@@ -23,7 +23,7 @@ var configSetCmd = &cobra.Command{
 		value := args[1]
 		viper.Set(key, value)
 		if err := viper.WriteConfig(); err != nil {
-			HandleError(err, "Guardar Configuração")
+			HandleError(err, "Salvar Configuração")
 			return
 		}
 

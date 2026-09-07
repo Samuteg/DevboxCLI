@@ -26,7 +26,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "ficheiro de config (por omissão é $HOME/.devbox.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "arquivo de configuração (padrão: $HOME/.devbox.yaml)")
 
 	rootCmd.SetHelpFunc(helpFunc)
 }
@@ -38,7 +38,7 @@ func initConfig() {
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
-		// Define o nome e o caminho do ficheiro
+		// Define o nome e o caminho do arquivo
 		viper.AddConfigPath(home)
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".devbox")
@@ -53,7 +53,7 @@ func initConfig() {
 
 		configPath := filepath.Join(home, ".devbox.yaml")
 
-		// Se o ficheiro não existir, cria um vazio
+		// Se o arquivo não existir, cria um vazio
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
 			os.WriteFile(configPath, []byte(""), 0644)
 		}
@@ -64,6 +64,6 @@ func initConfig() {
 
 	if viper.ReadInConfig() == nil {
 		// Pode descomentar a linha abaixo para debug inicial
-		// fmt.Println("A usar ficheiro de configuração:", viper.ConfigFileUsed())
+		// fmt.Println("A usar arquivo de configuração:", viper.ConfigFileUsed())
 	}
 }
