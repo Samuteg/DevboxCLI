@@ -3,10 +3,12 @@ package scaffold
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func MaterializeTemplates(fsys fs.FS, sourceZip, targetRoot string) error {
@@ -27,7 +29,11 @@ func MaterializeTemplates(fsys fs.FS, sourceZip, targetRoot string) error {
 	}
 
 	for _, file := range zipReader.File {
-		targetPath := filepath.Join(targetRoot, file.Name)
+		cleanName := filepath.Clean(file.Name)
+		if cleanName == "." || strings.HasPrefix(cleanName, "..") || filepath.IsAbs(cleanName) {
+			return fmt.Errorf("caminho inseguro no zip: %s", file.Name)
+		}
+		targetPath := filepath.Join(targetRoot, cleanName)
 
 		if file.FileInfo().IsDir() {
 			if err := os.MkdirAll(targetPath, 0755); err != nil {
@@ -45,7 +51,11 @@ func MaterializeTemplates(fsys fs.FS, sourceZip, targetRoot string) error {
 			return err
 		}
 
-		outFile, err := os.OpenFile(targetPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		mode := file.Mode()
+		if mode == 0 {
+			mode = 0644
+		}
+		outFile, err := os.OpenFile(targetPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
 		if err != nil {
 			rc.Close()
 			return err
