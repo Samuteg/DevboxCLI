@@ -100,7 +100,8 @@ var commitWizardCmd = &cobra.Command{
 
 		fmt.Println()
 		printStep("active", "Preparando arquivos (git add .)")
-		if exec.Command("git", "add", ".").Run() != nil {
+		if err := exec.Command("git", "add", ".").Run(); err != nil {
+			HandleError(err, "Falha ao adicionar arquivos")
 			return
 		}
 
