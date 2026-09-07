@@ -97,7 +97,7 @@ func handleBackend(name string, s scaffold.Stack) {
 		} else {
 			installSpin := NewSpinner(info("Instalando dependências (npm install)..."))
 			installSpin.Start()
-			if err := ExecuteCommandSilent("npm", []string{"install"}, name); err != nil {
+			if err := system.ExecuteSilent("npm", []string{"install"}, name); err != nil {
 				installSpin.Stop()
 				LogWarning("Falha ao instalar dependências automaticamente. Rode 'npm install' manualmente.")
 			} else {

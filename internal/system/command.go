@@ -28,3 +28,20 @@ func Execute(name string, args []string, dir string) error {
 
 	return nil
 }
+
+func ExecuteSilent(name string, args []string, dir string) error {
+	if !validCommandName.MatchString(name) {
+		return fmt.Errorf("nome de comando inválido: %s", name)
+	}
+
+	cmd := exec.Command(name, args...)
+	if dir != "" {
+		cmd.Dir = dir
+	}
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("erro ao executar %s: %w", name, err)
+	}
+
+	return nil
+}

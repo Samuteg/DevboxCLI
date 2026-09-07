@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os/exec"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -120,12 +119,6 @@ func NewSpinner(message string) *spinner.Spinner {
 	s.Suffix = " " + info(message)
 	s.Color("cyan")
 	return s
-}
-
-func ExecuteCommandSilent(name string, args []string, dir string) error {
-	cmd := exec.Command(name, args...)
-	cmd.Dir = dir
-	return cmd.Run()
 }
 
 func showSuccessBox(projectName, stackName string) {
