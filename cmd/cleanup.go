@@ -48,7 +48,7 @@ func runCleanup(cmd *cobra.Command, args []string) {
 		showCleanupSummary(removedDirs)
 	} else {
 		fmt.Println(lipgloss.NewStyle().
-			Foreground(successColor).
+			Foreground(ColorSuccess).
 			Bold(true).
 			MarginLeft(2).
 			Render("\n✨ Nada para limpar! Seu ambiente já está brilhando."))
@@ -56,13 +56,13 @@ func runCleanup(cmd *cobra.Command, args []string) {
 }
 
 func showCleanupSummary(dirs []string) {
-	title := lipgloss.NewStyle().Bold(true).Foreground(secondaryColor).Render("LIMPEZA CONCLUÍDA")
+	title := lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render("LIMPEZA CONCLUÍDA")
 
 	content := fmt.Sprintf(
 		"%s\n\nDiretórios limpos: %v\nStatus: %s",
 		title,
 		len(dirs),
-		lipgloss.NewStyle().Foreground(successColor).Render("Ambiente Otimizado 🚀"),
+		lipgloss.NewStyle().Foreground(ColorSuccess).Render("Ambiente Otimizado 🚀"),
 	)
 
 	fmt.Println(summaryBox.Render(content))

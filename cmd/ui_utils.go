@@ -63,22 +63,6 @@ var (
 	skullIcon = lipgloss.NewStyle().Foreground(ColorFix).SetString("☠")
 )
 
-// Aliases de compatibilidade temporários: outros comandos ainda usam os nomes
-// antigos e serão migrados nas tasks seguintes. Não usar em código novo —
-// prefira os tokens Color*.
-var (
-	primaryColor      = ColorPrimary
-	secondaryColor    = ColorSecondary
-	successColor      = ColorSuccess
-	featColor         = ColorFeat
-	fixColor          = ColorFix
-	docsColor         = ColorDocs
-	refactorColor     = ColorRefactor
-	addComponentColor = ColorSecondary
-	addDirColor       = ColorWarning
-	targetColor       = ColorStyle
-)
-
 const (
 	IconSuccess = "✔"
 	IconError   = "✖"
@@ -158,6 +142,9 @@ func printStep(status string, text string) {
 	case "done":
 		icon = iconStepDone.String()
 		msg = textStepDone.Render(text)
+	case "warn":
+		icon = lipgloss.NewStyle().Foreground(ColorWarning).SetString("⚠").String()
+		msg = lipgloss.NewStyle().Foreground(ColorWarning).Render(text)
 	}
 
 	fmt.Printf("  %s  %s\n", icon, msg)

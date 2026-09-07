@@ -56,14 +56,14 @@ func updateCLI() {
 
 	banner := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FFF")).
-		Background(primaryColor).
+		Background(ColorPrimary).
 		Padding(0, 1).
 		Bold(true).
 		Render(" UPDATE DISPONÍVEL ")
 
 	mainBox := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(primaryColor).
+		BorderForeground(ColorPrimary).
 		Padding(1, 3).
 		Align(lipgloss.Center).
 		Render(fmt.Sprintf("%s\n\n%s\n\nNovas melhorias e correções esperam por você.", banner, compareBox))

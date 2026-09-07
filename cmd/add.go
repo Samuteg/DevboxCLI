@@ -67,8 +67,8 @@ func toTitle(raw string) string {
 func renderDynamicTree(path string) {
 	parts := strings.Split(filepath.ToSlash(path), "/")
 
-	folderStyle := lipgloss.NewStyle().Foreground(addDirColor).Bold(true)
-	fileStyle := lipgloss.NewStyle().Foreground(addComponentColor)
+	folderStyle := lipgloss.NewStyle().Foreground(ColorWarning).Bold(true)
+	fileStyle := lipgloss.NewStyle().Foreground(ColorSecondary)
 	indent := "  "
 
 	for i, part := range parts {

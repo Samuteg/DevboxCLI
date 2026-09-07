@@ -19,7 +19,7 @@ e mantém o projeto limpo (cleanup).`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(lipgloss.NewStyle().
 			Bold(true).
-			Foreground(primaryColor).
+			Foreground(ColorPrimary).
 			MarginLeft(2).
 			Render("📦  Devbox — Gestão de Projetos"))
 		fmt.Println()

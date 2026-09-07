@@ -30,7 +30,7 @@ var configSetCmd = &cobra.Command{
 		printStep("done", "Configuração atualizada!")
 		fmt.Printf("  %s %s\n\n",
 			lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render(fmt.Sprintf("%s =", key)),
-			lipgloss.NewStyle().Foreground(secondaryColor).Bold(true).Render(value),
+			lipgloss.NewStyle().Foreground(ColorSecondary).Bold(true).Render(value),
 		)
 	},
 }
@@ -46,7 +46,7 @@ var configGetCmd = &cobra.Command{
 		if value == "" {
 			value = lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("240")).Render("<vazio>")
 		} else {
-			value = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true).Render(value)
+			value = lipgloss.NewStyle().Foreground(ColorSecondary).Bold(true).Render(value)
 		}
 
 		fmt.Printf("  %s %s\n",
@@ -64,7 +64,7 @@ var configListCmd = &cobra.Command{
 
 		settings := viper.AllSettings()
 		if len(settings) == 0 {
-			printStep("todo", "Nenhuma configuração definida.")
+			printStep("warn", "Nenhuma configuração definida.")
 			return
 		}
 
@@ -72,7 +72,7 @@ var configListCmd = &cobra.Command{
 		// Desenhamos uma tabela simples ou uma lista alinhada
 		for k, v := range settings {
 			kStyle := lipgloss.NewStyle().Width(15).Foreground(lipgloss.Color("242")).Render(k)
-			vStyle := lipgloss.NewStyle().Foreground(secondaryColor).Render(fmt.Sprintf("%v", v))
+			vStyle := lipgloss.NewStyle().Foreground(ColorSecondary).Render(fmt.Sprintf("%v", v))
 			fmt.Printf("  %s %s\n", kStyle, vStyle)
 		}
 		fmt.Println()

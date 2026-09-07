@@ -24,7 +24,7 @@ var killCmd = &cobra.Command{
 			port = viper.GetString("default-port")
 			fmt.Printf("  %s %s\n\n",
 				lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Italic(true).Render("Nenhuma porta informada. Usando porta padrão:"),
-				lipgloss.NewStyle().Foreground(secondaryColor).Render(port),
+				lipgloss.NewStyle().Foreground(ColorSecondary).Render(port),
 			)
 		}
 
@@ -35,7 +35,7 @@ var killCmd = &cobra.Command{
 		}
 
 		fmt.Printf("  %s %s %s\n\n",
-			lipgloss.NewStyle().Foreground(targetColor).Render("🎯"),
+			lipgloss.NewStyle().Foreground(ColorStyle).Render("🎯"),
 			"Rastreando alvo na porta:",
 			portStyle.Render(port),
 		)
@@ -55,7 +55,7 @@ func killUnix(port string) {
 	out, err := cmdFind.Output()
 
 	if err != nil || len(strings.TrimSpace(string(out))) == 0 {
-		printStep("todo", "Nenhum processo ativo encontrado na porta")
+		printStep("warn", "Nenhum processo ativo encontrado na porta")
 		return
 	}
 
@@ -86,7 +86,7 @@ func killUnix(port string) {
 	}
 
 	if killed == 0 {
-		printStep("todo", "Nenhum processo foi terminado")
+		printStep("warn", "Nenhum processo foi terminado")
 		return
 	}
 
@@ -101,7 +101,7 @@ func killWindows(port string) {
 	cmd := exec.Command("powershell", "-Command", command)
 
 	if cmd.Run() != nil {
-		printStep("todo", "Porta parece já estar livre ou acesso negado")
+		printStep("warn", "Porta parece já estar livre ou acesso negado")
 	} else {
 		printStep("done", "Porta liberada")
 		showKillFinal(port)
@@ -112,7 +112,7 @@ func showKillFinal(port string) {
 	fmt.Println()
 	msg := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(successColor).
+		Foreground(ColorSuccess).
 		Render(fmt.Sprintf("✨ Porta %s limpa e pronta para uso!", port))
 
 	fmt.Printf("  %s %s\n", skullIcon, msg)

@@ -77,7 +77,7 @@ var commitWizardCmd = &cobra.Command{
 		fmt.Println()
 		fmt.Printf("  %s %s\n",
 			lipgloss.NewStyle().Bold(true).Render("Mensagem gerada:"),
-			lipgloss.NewStyle().Foreground(secondaryColor).Render(finalMsg),
+			lipgloss.NewStyle().Foreground(ColorSecondary).Render(finalMsg),
 		)
 
 		var confirmed bool
@@ -108,7 +108,7 @@ var commitWizardCmd = &cobra.Command{
 		cmdGit := exec.Command("git", "commit", "-m", finalMsg)
 
 		if output, err := cmdGit.CombinedOutput(); err != nil {
-			printStep("todo", "Nada para commitar ou erro no Git.")
+			printStep("warn", "Nada para commitar ou erro no Git.")
 			fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(4).Render(string(output)))
 		} else {
 			printStep("done", "Commit registrado")
@@ -121,13 +121,13 @@ func showCommitSuccess(cType, scope, msg string) {
 	bgColor := lipgloss.Color("240")
 	switch cType {
 	case "feat":
-		bgColor = featColor
+		bgColor = ColorFeat
 	case "fix":
-		bgColor = fixColor
+		bgColor = ColorFix
 	case "docs":
-		bgColor = docsColor
+		bgColor = ColorDocs
 	case "refactor":
-		bgColor = refactorColor
+		bgColor = ColorRefactor
 	}
 
 	badge := commitTypeStyle.Background(bgColor).Render(strings.ToUpper(cType))
@@ -142,12 +142,12 @@ func showCommitSuccess(cType, scope, msg string) {
 		badge,
 		formattedScope,
 		lipgloss.NewStyle().Foreground(lipgloss.Color("250")).Render(msg),
-		lipgloss.NewStyle().Italic(true).Foreground(successColor).Render("Histórico do Git atualizado!"),
+		lipgloss.NewStyle().Italic(true).Foreground(ColorSuccess).Render("Histórico do Git atualizado!"),
 	)
 
 	fmt.Println(lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(successColor).
+		BorderForeground(ColorSuccess).
 		Padding(1, 2).
 		MarginTop(1).
 		Render(content))
