@@ -112,10 +112,11 @@ devbox init
 
 | Stack       | Variantes                  | Estrutura Gerada                                 |
 | :---------- | :------------------------- | :----------------------------------------------- |
-| **Go**      | `Gin`, `Simple`            | `cmd/`, `internal/entity`, `internal/usecase`    |
-| **Python**  | `FastAPI`                  | `src/api`, `src/core`, `src/models`, `tests/`    |
+| **Go**      | `Gin`, `Simples (Padrão)`  | `cmd/`, `internal/entity`, `internal/usecase`    |
+| **Python**  | `FastAPI`, `Simples`       | `src/api`, `src/core`, `src/models`, `tests/`    |
 | **Node.js** | `TypeScript`, `JavaScript` | `src/controllers`, `src/routes`, `src/models`    |
 | **Ruby**    | `Simple`, `Rails`          | `app/controllers`, `app/routes`, `app/models`    |
+| **Java**    | —                          | `src/main/java/com`, `src/test/java/com`         |
 
 ### Frontend
 

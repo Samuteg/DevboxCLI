@@ -74,7 +74,6 @@ func DefaultStacks() map[string]Stack {
 		"Node.js": {
 			Name:      "Node",
 			IsBackend: true,
-			Source:    "templates/node/base",
 			Variants: []Variant{
 				{
 					Name:      "JavaScript",
@@ -92,16 +91,14 @@ func DefaultStacks() map[string]Stack {
 		"Go": {
 			Name:      "Go",
 			IsBackend: true,
-			Source:    "templates/go",
 			Variants: []Variant{
-				{Name: "Simples (padrao)", Source: "templates/golang/simple.zip", ExtraDirs: []string{"cmd/api", "internal/entity", "internal/infra/repository", "internal/infra/web", "internal/usecase"}},
+				{Name: "Simples (Padrão)", Source: "templates/golang/simple.zip", ExtraDirs: []string{"cmd/api", "internal/entity", "internal/infra/repository", "internal/infra/web", "internal/usecase"}},
 				{Name: "Gin", Source: "templates/golang/Gin.zip", ExtraDirs: golangSubDirs},
 			},
 		},
 		"Python": {
 			Name:      "Python",
 			IsBackend: true,
-			Source:    "templates/python",
 			Variants: []Variant{
 				{Name: "Simples (Recomendado)", Source: "templates/python/simple.zip"},
 				{Name: "FastAPI", Source: "templates/python/python.zip", ExtraDirs: prefixPaths("backend", pythonSubDirs)},
@@ -110,9 +107,8 @@ func DefaultStacks() map[string]Stack {
 		"Ruby": {
 			Name:      "Ruby",
 			IsBackend: true,
-			Source:    "templates/ruby",
 			Variants: []Variant{
-				{Name: "simple", Source: "templates/ruby/simple.zip"},
+				{Name: "Simple", Source: "templates/ruby/simple.zip"},
 				{Name: "Rails", Source: "templates/ruby/ruby.zip", ExtraDirs: rubySubDirs},
 			},
 		},
