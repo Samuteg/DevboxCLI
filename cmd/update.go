@@ -76,6 +76,7 @@ func updateCLI() {
 	prompt := promptui.Prompt{
 		Label:     "  Deseja baixar e instalar agora?",
 		IsConfirm: true,
+		Templates: newPromptTemplates(),
 	}
 
 	if _, err := prompt.Run(); err != nil {
@@ -83,7 +84,6 @@ func updateCLI() {
 		return
 	}
 
-	// Realiza o Update com Feedback de Etapas
 	fmt.Println()
 	printStep("active", "Baixando novo binário...")
 

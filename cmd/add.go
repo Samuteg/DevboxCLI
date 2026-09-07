@@ -64,8 +64,6 @@ func toTitle(raw string) string {
 	return strings.ToUpper(raw[:1]) + raw[1:]
 }
 
-// --- UI: Árvore Dinâmica ---
-
 func renderDynamicTree(path string) {
 	parts := strings.Split(filepath.ToSlash(path), "/")
 

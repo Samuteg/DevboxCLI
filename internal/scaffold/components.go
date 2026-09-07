@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"text/template"
 )
@@ -11,12 +12,7 @@ import (
 var ValidComponentTypes = []string{"controller", "usecase", "repository", "handler"}
 
 func IsValidComponentType(componentType string) bool {
-	for _, candidate := range ValidComponentTypes {
-		if candidate == componentType {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(ValidComponentTypes, componentType)
 }
 
 func CreateComponent(componentType, componentName, authorName string) (string, error) {

@@ -19,15 +19,16 @@ var commitWizardCmd = &cobra.Command{
 			"fix:      🐛 Correção de bug",
 			"docs:     📝 Documentação",
 			"style:    🎨 Formatação/Estilo",
-			"refactor: ♻️  Refatoração",
-			"test:     ✅ Testes",
+			"refactor: 🔁 Refatoração",
+			"test:     🧪 Testes",
 			"chore:    🔧 Manutenção",
 		}
 
 		promptType := promptui.Select{
-			Label: lipgloss.NewStyle().Foreground(primaryColor).Render("Tipo de alteração"),
-			Items: items,
-			Size:  7,
+			Label:     lipgloss.NewStyle().Foreground(primaryColor).Render("Tipo de alteração"),
+			Items:     items,
+			Size:      7,
+			Templates: newSelectTemplates(),
 		}
 
 		_, result, err := promptType.Run()
@@ -36,15 +37,18 @@ var commitWizardCmd = &cobra.Command{
 			return
 		}
 
-		commitType := strings.TrimSpace(strings.Split(result, ":")[0])
+		commitType, _, _ := strings.Cut(result, ":")
+		commitType = strings.TrimSpace(commitType)
 
 		promptScope := promptui.Prompt{
-			Label: "  🎯 Escopo (opcional)",
+			Label:     "  🎯 Escopo (opcional)",
+			Templates: newPromptTemplates(),
 		}
 		scope, _ := promptScope.Run()
 
 		promptMsg := promptui.Prompt{
-			Label: "  📝 Descrição curta",
+			Label:     "  📝 Descrição curta",
+			Templates: newPromptTemplates(),
 			Validate: func(input string) error {
 				if len(input) < 3 {
 					return fmt.Errorf("a descrição precisa de pelo menos 3 caracteres")
@@ -70,6 +74,7 @@ var commitWizardCmd = &cobra.Command{
 		promptConfirm := promptui.Prompt{
 			Label:     "  Confirmar commit?",
 			IsConfirm: true,
+			Templates: newPromptTemplates(),
 		}
 
 		if _, err := promptConfirm.Run(); err != nil {
@@ -86,7 +91,6 @@ var commitWizardCmd = &cobra.Command{
 		printStep("active", "Executando commit")
 		cmdGit := exec.Command("git", "commit", "-m", finalMsg)
 
-		// Se houver erro no commit (ex: nada para commitar)
 		if output, err := cmdGit.CombinedOutput(); err != nil {
 			printStep("todo", "Nada para commitar ou erro no Git.")
 			fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(4).Render(string(output)))
@@ -98,7 +102,6 @@ var commitWizardCmd = &cobra.Command{
 }
 
 func showCommitSuccess(cType, scope, msg string) {
-	// Define a cor baseada no tipo para o badge
 	bgColor := lipgloss.Color("240")
 	switch cType {
 	case "feat":

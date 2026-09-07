@@ -32,7 +32,7 @@ var (
 
 	checkStyle = lipgloss.NewStyle().Padding(0, 1)
 
-	iconSuccess = lipgloss.NewStyle().Foreground(failColor).SetString("✔ PASSED")
+	iconSuccess = lipgloss.NewStyle().Foreground(successColor).SetString("✔ PASSED")
 	iconFail    = lipgloss.NewStyle().Foreground(failColor).SetString("✖ FAILED")
 )
 

@@ -136,11 +136,10 @@ func handleFrontend(name string, s scaffold.Stack) {
 	showSuccessBox(name, s.Name)
 }
 
-// --- Helpers de UI ---
-
 func promptInput(label, errMsg string, minLen int) string {
 	p := promptui.Prompt{
-		Label: label,
+		Label:     label,
+		Templates: newPromptTemplates(),
 		Validate: func(s string) error {
 			if len(s) < minLen {
 				return errors.New(errMsg)
@@ -153,7 +152,7 @@ func promptInput(label, errMsg string, minLen int) string {
 }
 
 func promptSelect(label string, items []string) string {
-	p := promptui.Select{Label: label, Items: items}
+	p := promptui.Select{Label: label, Items: items, Templates: newSelectTemplates()}
 	_, res, _ := p.Run()
 	return res
 }
@@ -169,9 +168,10 @@ func promptVariant(variants []scaffold.Variant) scaffold.Variant {
 	}
 
 	prompt := promptui.Select{
-		Label: "⚡ Escolha uma variante",
-		Items: items,
-		Size:  5,
+		Label:     "⚡ Escolha uma variante",
+		Items:     items,
+		Size:      5,
+		Templates: newSelectTemplates(),
 	}
 
 	idx, _, err := prompt.Run()
@@ -189,10 +189,7 @@ func renderMinimalTree(projectName string, s scaffold.Stack) {
 
 	fmt.Printf("  %s\n", folder.Render(projectName+"/"))
 
-	limit := 3
-	if len(s.ExtraDirs) < limit {
-		limit = len(s.ExtraDirs)
-	}
+	limit := min(3, len(s.ExtraDirs))
 
 	for i := 0; i < limit; i++ {
 		char := branch

@@ -69,8 +69,7 @@ func killUnix(port string) {
 
 	printStep("active", fmt.Sprintf("Encerrando processo %s", pidStyle.Render("("+pid+")")))
 
-	pids := strings.Fields(pid)
-	for _, p := range pids {
+	for p := range strings.FieldsSeq(pid) {
 		cmdKill := exec.Command("kill", "-9", p)
 		if err := cmdKill.Run(); err != nil {
 			HandleError(err, "Falha ao matar processo "+p)

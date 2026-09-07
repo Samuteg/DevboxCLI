@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// --- Estilos Específicos do Help ---
 var (
 	sectionStyle = lipgloss.NewStyle().
 			Bold(true).

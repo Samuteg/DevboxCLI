@@ -8,6 +8,7 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/fatih/color"
+	"github.com/manifoldco/promptui"
 )
 
 var (
@@ -17,25 +18,19 @@ var (
 	errColor = color.New(color.FgRed).SprintFunc()
 	bold     = color.New(color.Bold).SprintFunc()
 
-	// Ícones de Estado
 	iconStepTodo   = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).SetString("○")
 	iconStepActive = lipgloss.NewStyle().Foreground(primaryColor).SetString("●")
 	iconStepDone   = lipgloss.NewStyle().Foreground(successColor).SetString("✔")
 
-	// Texto dos Passos
 	textStepTodo   = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	textStepActive = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFF")).Bold(true)
 	textStepDone   = lipgloss.NewStyle().Foreground(lipgloss.Color("#CCC")).Strikethrough(false)
 
-	// Paleta de Cores
-	red            = lipgloss.Color("#E74C3C")
+	errorColor     = lipgloss.Color("#E74C3C")
 	primaryColor   = lipgloss.Color("#7D56F4")
-	grayColor      = lipgloss.Color("#626262")
 	secondaryColor = lipgloss.Color("#00ADD8")
 	successColor   = lipgloss.Color("#27AE60")
-	errorColor     = red
 
-	// Estilo para Mensagens de Sucesso
 	successBox = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(successColor).
@@ -43,12 +38,10 @@ var (
 			Bold(true).
 			MarginTop(1)
 
-	// Estilo para Texto em Destaque
 	highlight = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
 
-	// Cores para o Cleanup
-	deleteColor  = red                   // Vermelho
-	neutralColor = lipgloss.Color("242") // Cinza
+	deleteColor  = errorColor
+	neutralColor = lipgloss.Color("242")
 
 	delStyle  = lipgloss.NewStyle().Foreground(deleteColor).Bold(true)
 	pathStyle = lipgloss.NewStyle().Foreground(neutralColor).Italic(true)
@@ -59,39 +52,24 @@ var (
 			Padding(0, 2).
 			MarginTop(1)
 
-	// Cores para o Add
-	addComponentColor = lipgloss.Color("#00ADD8") // Ciano para novos arquivos
-	addDirColor       = lipgloss.Color("#F1C40F") // Amarelo para diretórios
+	addComponentColor = lipgloss.Color("#00ADD8")
+	addDirColor       = lipgloss.Color("#F1C40F")
 
-	// Estilo da árvore
 	treeBranch = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("├──")
 	treeLast   = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("└──")
 
-	// Cores por tipo de commit
-	featColor     = lipgloss.Color("#A3BE8C") // Verde suave
-	fixColor      = lipgloss.Color("#BF616A") // Vermelho/Vinho
-	docsColor     = lipgloss.Color("#81A1C1") // Azul gelo
-	refactorColor = lipgloss.Color("#B48EAD") // Roxo/Lilás
+	featColor     = lipgloss.Color("#A3BE8C")
+	fixColor      = lipgloss.Color("#BF616A")
+	docsColor     = lipgloss.Color("#81A1C1")
+	refactorColor = lipgloss.Color("#B48EAD")
 
-	// Estilo para a mensagem final de commit no log
 	commitScopeStyle = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
 	commitTypeStyle  = lipgloss.NewStyle().Bold(true).Padding(0, 1).Foreground(lipgloss.Color("#FFF"))
-
-	// Versões
-	versionCurrentStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("246"))                // Cinza
-	versionLatestStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#04B575")).Bold(true) // Verde
-
-	// Banner de "Nova Versão"
-	updateBannerStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#FFF")).
-				Background(lipgloss.Color("#5D3FD3")).
-				Padding(0, 1).
-				Bold(true)
 
 	errorBanner = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#FFF")).
-			Background(red).
+			Background(errorColor).
 			Padding(0, 1)
 
 	errorContextStyle = lipgloss.NewStyle().
@@ -102,7 +80,7 @@ var (
 				Foreground(lipgloss.Color("246"))
 
 	errorIcon = lipgloss.NewStyle().
-			Foreground(red).
+			Foreground(errorColor).
 			SetString("✘")
 
 	targetColor = lipgloss.Color("#EBCB8B")
@@ -114,7 +92,6 @@ var (
 	skullIcon = lipgloss.NewStyle().Foreground(killColor).SetString("☠")
 )
 
-// Ícones para feedback visual rápido
 const (
 	IconSuccess = "✔"
 	IconError   = "✖"
@@ -124,6 +101,25 @@ const (
 )
 
 const stringHandler = "%s %s\n"
+
+// Templates do promptui sem o estilo faint.
+//
+// Causa raiz: os templates padrão do promptui v0.9.0 renderizam a linha
+// confirmada/selecionada com faint (SGR 2) — `{{ . | faint }}` — o que
+// deixava emojis e texto "apagados" após a escolha (ex: tipos de commit).
+// Estas funções devolvem instâncias novas a cada chamada; os demais campos
+// continuam com os padrões do promptui. Mantêm o ✔ verde, sem esmaecer.
+func newSelectTemplates() *promptui.SelectTemplates {
+	return &promptui.SelectTemplates{
+		Selected: promptui.IconGood + ` {{ . }}`,
+	}
+}
+
+func newPromptTemplates() *promptui.PromptTemplates {
+	return &promptui.PromptTemplates{
+		Success: `{{ . }}: `,
+	}
+}
 
 func LogSuccess(message string) {
 	fmt.Printf(stringHandler, success(IconSuccess), message)
@@ -140,8 +136,6 @@ func LogInfo(message string) {
 func LogWarning(message string) {
 	fmt.Printf(stringHandler, warning("!"), warning(message))
 }
-
-// --- SPINNER & EXECUÇÃO ---
 
 func NewSpinner(message string) *spinner.Spinner {
 	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
@@ -191,9 +185,9 @@ func PrintBanner() {
 	asciiArt := `
     ____  _______    ______  ____  _  __
    / __ \/ ____/ |  / / __ )/ __ \| |/ /
-  / / / / __/  | | / / __  / / / /   /  
- / /_/ / /___  | |/ / /_/ / /_/ /   |   
-/_____/_____/  |___/_____/\____/_/|_|   
+  / / / / __/  | | / / __  / / / /   /
+ / /_/ / /___  | |/ / /_/ / /_/ /   |
+/_____/_____/  |___/_____/\____/_/|_|
 `
 	fmt.Println(style.Render(asciiArt))
 	fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(2).Render("v1.0.0 • Automation Tool"))
