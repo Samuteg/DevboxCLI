@@ -61,16 +61,19 @@ func killUnix(port string) {
 
 	pid := strings.TrimSpace(string(out))
 
+	pids := strings.Fields(pid)
 	validPid := regexp.MustCompile(`^[0-9]+$`)
-	if !validPid.MatchString(pid) {
-		HandleError(fmt.Errorf("PID retornado é suspeito: %q", pid), "Segurança")
-		return
+	for _, p := range pids {
+		if !validPid.MatchString(p) {
+			HandleError(fmt.Errorf("PID retornado é suspeito: %q", p), "Segurança")
+			return
+		}
 	}
 
 	printStep("active", fmt.Sprintf("Encerrando processo %s", pidStyle.Render("("+pid+")")))
 
 	killed := 0
-	for _, p := range strings.Fields(pid) {
+	for _, p := range pids {
 		if exec.Command("kill", p).Run() == nil {
 			killed++
 			continue
