@@ -54,7 +54,7 @@ func runAdd(cmd *cobra.Command, args []string) {
 	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("📂 Arquivo gerado:"))
 	renderDynamicTree(path)
 
-	showSuccessBox(resourceName, toTitle(resourceType))
+	ShowSuccessBox(resourceName, toTitle(resourceType))
 }
 
 func toTitle(raw string) string {

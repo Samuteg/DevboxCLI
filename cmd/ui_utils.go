@@ -121,17 +121,6 @@ func NewSpinner(message string) *spinner.Spinner {
 	return s
 }
 
-func showSuccessBox(projectName, stackName string) {
-	content := fmt.Sprintf(
-		"🚀 Projeto %s criado com sucesso!\n\nStack: %s\nPróximo passo: %s",
-		highlight.Render(projectName),
-		highlight.Render(stackName),
-		highlight.Render("cd "+projectName+" && code ."),
-	)
-
-	fmt.Println(successBox.Render(content))
-}
-
 func ShowSuccessBox(projectName, stack string) {
 	fmt.Println(bold("\n✨ Projeto criado com sucesso!"))
 	fmt.Println(color.MagentaString("---------------------------------"))

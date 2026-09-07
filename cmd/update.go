@@ -105,7 +105,7 @@ func updateCLI() {
 
 	printStep("done", "Download e instalação finalizados")
 
-	showSuccessBox(latest.Version.String(), "Atualização Concluída")
+	ShowSuccessBox(latest.Version.String(), "Atualização Concluída")
 
 	fmt.Printf("\n  %s\n", lipgloss.NewStyle().
 		Italic(true).

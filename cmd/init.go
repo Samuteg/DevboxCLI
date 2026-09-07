@@ -110,7 +110,7 @@ func handleBackend(name string, s scaffold.Stack) {
 	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("📦 Estrutura criada:"))
 	renderMinimalTree(name, s)
 
-	showSuccessBox(name, s.Name)
+	ShowSuccessBox(name, s.Name)
 }
 
 func handleFrontend(name string, s scaffold.Stack) {
@@ -135,7 +135,7 @@ func handleFrontend(name string, s scaffold.Stack) {
 		return
 	}
 
-	showSuccessBox(name, s.Name)
+	ShowSuccessBox(name, s.Name)
 }
 
 func promptInput(label, errMsg string, minLen int) string {
