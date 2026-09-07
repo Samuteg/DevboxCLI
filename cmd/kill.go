@@ -14,7 +14,7 @@ import (
 
 var killCmd = &cobra.Command{
 	Use:   "kill [porta]",
-	Short: "Termina o processo que está a ocupar uma porta específica",
+	Short: "Termina o processo que está ocupando uma porta específica",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var port string
