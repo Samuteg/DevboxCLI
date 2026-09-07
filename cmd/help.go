@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
@@ -47,11 +46,18 @@ func helpFunc(cmd *cobra.Command, args []string) {
 
 	fmt.Println(sectionStyle.Render("USAGE"))
 
-	useLine := cmd.UseLine()
-	if !strings.HasPrefix(useLine, "devbox") {
-		useLine = "devbox " + useLine
-	}
+	useLine := cmd.CommandPath() + " " + cmd.Use
 	fmt.Printf("  %s\n", usageStyle.Render(useLine))
+
+	if len(cmd.Aliases) > 0 {
+		fmt.Println(sectionStyle.Render("ALIASES"))
+		for _, alias := range cmd.Aliases {
+			fmt.Printf("  %s%s\n",
+				commandStyle.Render(alias),
+				descStyle.Render("(alias de "+cmd.Name()+")"),
+			)
+		}
+	}
 
 	if len(cmd.Commands()) > 0 {
 		fmt.Println(sectionStyle.Render("COMMANDS"))
@@ -66,6 +72,11 @@ func helpFunc(cmd *cobra.Command, args []string) {
 				descStyle.Render(c.Short),
 			)
 		}
+	}
+
+	if cmd.Example != "" {
+		fmt.Println(sectionStyle.Render("EXAMPLES"))
+		fmt.Println(lipgloss.NewStyle().MarginLeft(2).Foreground(ColorSubtle).Render(cmd.Example))
 	}
 
 	if cmd.Flags().HasFlags() {
@@ -87,7 +98,7 @@ func helpFunc(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println()
-	footer := lipgloss.NewStyle().Italic(true).Foreground(ColorSubtle).Render("  Use 'devbox [command] --help' para mais informações.")
+	footer := lipgloss.NewStyle().Italic(true).Foreground(ColorSubtle).Render("  Use '" + cmd.CommandPath() + " [command] --help' para mais informações.")
 	fmt.Println(footer)
 	fmt.Println()
 }
