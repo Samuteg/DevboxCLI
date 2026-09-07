@@ -12,9 +12,9 @@
       "0409": {
         "identity": {
           "name": "Devbox",
-          "version": ""
+          "version": "1.0.1"
         },
-        "description": "",
+        "description": "CLI para scaffolding de projetos Backend e Frontend",
         "minimum-os": "win7",
         "execution-level": "as invoker",
         "ui-access": false,
@@ -36,22 +36,22 @@
     "#1": {
       "0000": {
         "fixed": {
-          "file_version": "0.0.0.0",
-          "product_version": "0.0.0.0"
+          "file_version": "1.0.1.0",
+          "product_version": "1.0.1.0"
         },
         "info": {
           "0409": {
             "Comments": "",
-            "CompanyName": "",
+            "CompanyName": "Samuteg",
             "FileDescription": "Devbox CLI",
-            "FileVersion": "",
-            "InternalName": "",
-            "LegalCopyright": "",
+            "FileVersion": "1.0.1",
+            "InternalName": "devbox",
+            "LegalCopyright": "© Samuteg",
             "LegalTrademarks": "",
-            "OriginalFilename": "",
+            "OriginalFilename": "devbox.exe",
             "PrivateBuild": "",
             "ProductName": "Devbox",
-            "ProductVersion": "",
+            "ProductVersion": "1.0.1",
             "SpecialBuild": ""
           }
         }
