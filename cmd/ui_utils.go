@@ -25,15 +25,6 @@ var (
 	textStepActive = lipgloss.NewStyle().Foreground(ColorWhite).Bold(true)
 	textStepDone   = lipgloss.NewStyle().Foreground(lipgloss.Color("#CCC")).Strikethrough(false)
 
-	successBox = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(ColorSuccess).
-			Padding(1, 2).
-			Bold(true).
-			MarginTop(1)
-
-	highlight = lipgloss.NewStyle().Foreground(ColorSecondary).Bold(true)
-
 	delStyle  = lipgloss.NewStyle().Foreground(ColorError).Bold(true)
 	pathStyle = lipgloss.NewStyle().Foreground(ColorMuted).Italic(true)
 
