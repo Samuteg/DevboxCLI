@@ -178,7 +178,7 @@ func promptVariant(variants []scaffold.Variant) scaffold.Variant {
 		options[i] = huh.NewOption(v.Name, v.Name)
 	}
 	_ = huh.NewSelect[string]().
-		Title("Escolha uma variante").
+		Title("⚡ Escolha uma variante").
 		Options(options...).
 		Value(&value).
 		Run()
