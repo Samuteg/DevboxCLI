@@ -116,13 +116,17 @@ func handleBackend(name string, s scaffold.Stack) {
 func handleFrontend(name string, s scaffold.Stack) {
 	fmt.Printf("\n🎨 %s\n", info("Iniciando gerador oficial do "+s.Name))
 
-	rawCmd := fmt.Sprintf(s.Source, name)
-	parts := strings.Fields(rawCmd)
-	if len(parts) == 0 {
+	templateParts := strings.Fields(s.Source)
+	if len(templateParts) == 0 {
 		HandleError(errors.New("comando vazio para stack frontend"), "Configuração de Stack")
 		return
 	}
-	commandName := parts[0]
+	commandName := templateParts[0]
+
+	args := make([]string, 0, len(templateParts)-1)
+	for _, p := range templateParts[1:] {
+		args = append(args, fmt.Sprintf(p, name))
+	}
 
 	if runtime.GOOS == "windows" {
 		if commandName == "npx" || commandName == "npm" {
@@ -130,7 +134,7 @@ func handleFrontend(name string, s scaffold.Stack) {
 		}
 	}
 
-	if err := system.Execute(commandName, parts[1:], ""); err != nil {
+	if err := system.Execute(commandName, args, ""); err != nil {
 		HandleError(err, "Execução do gerador frontend")
 		return
 	}
