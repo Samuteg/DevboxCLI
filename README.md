@@ -68,7 +68,7 @@ A **Devbox CLI** elimina a fadiga de configuração inicial. Em vez de gastar ho
 ### Opção 1: Via Go Install (Recomendado)
 
 ```bash
-go install github.com/Samuteg/DevboxCLI@latest
+go install github.com/Samuteg/DevboxCLI/cmd/devbox@latest
 ```
 
 ### Opção 2: Via Script (Linux / macOS)
@@ -212,7 +212,7 @@ Para stacks <b>Frontend</b> (Vite/Next.js), é necessário acesso à internet po
 Reinstale com o mesmo comando de instalação:
 
 ```bash
-go install github.com/Samuteg/DevboxCLI@latest
+go install github.com/Samuteg/DevboxCLI/cmd/devbox@latest
 ```
 </details>
 

@@ -16,7 +16,8 @@ before:
     - go generate ./...
 
 builds:
-  - binary: devbox
+  - dir: cmd/devbox
+    binary: devbox
     env:
       - CGO_ENABLED=0
     goos:

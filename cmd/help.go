@@ -46,7 +46,7 @@ func helpFunc(cmd *cobra.Command, args []string) {
 
 	fmt.Println(sectionStyle.Render("USAGE"))
 
-	useLine := cmd.CommandPath() + " " + cmd.Use
+	useLine := cmd.UseLine()
 	fmt.Printf("  %s\n", usageStyle.Render(useLine))
 
 	if len(cmd.Aliases) > 0 {
@@ -98,7 +98,7 @@ func helpFunc(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println()
-	footer := lipgloss.NewStyle().Italic(true).Foreground(ColorSubtle).Render("  Use '" + cmd.CommandPath() + " [command] --help' para mais informações.")
+	footer := lipgloss.NewStyle().Italic(true).Foreground(ColorSubtle).Render("  Use '" + cmd.CommandPath() + " [comando] --help' para mais informações.")
 	fmt.Println(footer)
 	fmt.Println()
 }
