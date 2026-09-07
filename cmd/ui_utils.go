@@ -8,7 +8,6 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/fatih/color"
-	"github.com/manifoldco/promptui"
 )
 
 var (
@@ -98,25 +97,6 @@ const (
 )
 
 const stringHandler = "%s %s\n"
-
-// Templates do promptui sem o estilo faint.
-//
-// Causa raiz: os templates padrão do promptui v0.9.0 renderizam a linha
-// confirmada/selecionada com faint (SGR 2) — `{{ . | faint }}` — o que
-// deixava emojis e texto "apagados" após a escolha (ex: tipos de commit).
-// Estas funções devolvem instâncias novas a cada chamada; os demais campos
-// continuam com os padrões do promptui. Mantêm o ✔ verde, sem esmaecer.
-func newSelectTemplates() *promptui.SelectTemplates {
-	return &promptui.SelectTemplates{
-		Selected: promptui.IconGood + ` {{ . }}`,
-	}
-}
-
-func newPromptTemplates() *promptui.PromptTemplates {
-	return &promptui.PromptTemplates{
-		Success: `{{ . }}: `,
-	}
-}
 
 func LogSuccess(message string) {
 	fmt.Printf(stringHandler, success(IconSuccess), message)
