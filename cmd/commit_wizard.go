@@ -128,6 +128,12 @@ func showCommitSuccess(cType, scope, msg string) {
 		bgColor = ColorDocs
 	case "refactor":
 		bgColor = ColorRefactor
+	case "style":
+		bgColor = ColorStyle
+	case "test":
+		bgColor = ColorTest
+	case "chore":
+		bgColor = ColorChore
 	}
 
 	badge := commitTypeStyle.Background(bgColor).Render(strings.ToUpper(cType))
