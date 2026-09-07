@@ -17,23 +17,19 @@ var doctorCmd = &cobra.Command{
 }
 
 var (
-	headerColor = lipgloss.Color("#7D56F4")
-	subtleColor = lipgloss.Color("#5C5C5C")
-	failColor   = lipgloss.Color("#FF4C4C")
-
 	colNameWidth   = 15
 	colStatusWidth = 10
 	colMsgWidth    = 40
 
 	headerStyle = lipgloss.NewStyle().
-			Foreground(headerColor).
+			Foreground(ColorPrimary).
 			Bold(true).
 			Padding(0, 1)
 
 	checkStyle = lipgloss.NewStyle().Padding(0, 1)
 
-	iconSuccess = lipgloss.NewStyle().Foreground(successColor).SetString("✔ PASSED")
-	iconFail    = lipgloss.NewStyle().Foreground(failColor).SetString("✖ FAILED")
+	iconSuccess = lipgloss.NewStyle().Foreground(ColorSuccess).SetString("✔ PASSED")
+	iconFail    = lipgloss.NewStyle().Foreground(ColorError).SetString("✖ FAILED")
 )
 
 type CheckResult struct {
@@ -43,8 +39,8 @@ type CheckResult struct {
 }
 
 func runDoctor(cmd *cobra.Command, args []string) {
-	fmt.Println(lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFF")).Render("  🩺  DEVBOX DOCTOR"))
-	fmt.Println(lipgloss.NewStyle().Foreground(subtleColor).Render("  Verificando dependências do sistema..."))
+	fmt.Println(lipgloss.NewStyle().Bold(true).Foreground(ColorWhite).Render("  🩺  DEVBOX DOCTOR"))
+	fmt.Println(lipgloss.NewStyle().Foreground(ColorMuted).Render("  Verificando dependências do sistema..."))
 	fmt.Println()
 
 	checks := []struct {
@@ -67,7 +63,7 @@ func runDoctor(cmd *cobra.Command, args []string) {
 		headerStyle.Width(colMsgWidth).Render("DETALHES"),
 	)
 
-	border := lipgloss.NewStyle().Foreground(subtleColor).Render(strings.Repeat("─", colNameWidth+colStatusWidth+colMsgWidth+6))
+	border := lipgloss.NewStyle().Foreground(ColorMuted).Render(strings.Repeat("─", colNameWidth+colStatusWidth+colMsgWidth+6))
 
 	fmt.Println("  " + headers)
 	fmt.Println("  " + border)
@@ -80,16 +76,16 @@ func runDoctor(cmd *cobra.Command, args []string) {
 		path, err := exec.LookPath(c.cmd)
 		if err != nil {
 			status = iconFail.String()
-			msg = lipgloss.NewStyle().Foreground(failColor).Render("Instale via: " + c.url)
+			msg = lipgloss.NewStyle().Foreground(ColorError).Render("Instale via: " + c.url)
 			hasError = true
 		} else {
 			status = iconSuccess.String()
 			version := getVersion(c.cmd)
-			msg = lipgloss.NewStyle().Foreground(subtleColor).Render(fmt.Sprintf("%s (%s)", path, version))
+			msg = lipgloss.NewStyle().Foreground(ColorMuted).Render(fmt.Sprintf("%s (%s)", path, version))
 		}
 
 		row := lipgloss.JoinHorizontal(lipgloss.Top,
-			checkStyle.Width(colNameWidth).Foreground(lipgloss.Color("#FFF")).Render(c.name),
+			checkStyle.Width(colNameWidth).Foreground(ColorWhite).Render(c.name),
 			checkStyle.Width(colStatusWidth).Render(status),
 			checkStyle.Width(colMsgWidth).Render(msg),
 		)
@@ -102,7 +98,7 @@ func runDoctor(cmd *cobra.Command, args []string) {
 	if hasError {
 		box := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(failColor).
+			BorderForeground(ColorError).
 			Padding(0, 1).
 			Render("⚠️  Algumas ferramentas essenciais estão faltando.\nPor favor, instale-as para garantir o funcionamento total.")
 		fmt.Println(box)
@@ -115,7 +111,7 @@ func runDoctor(cmd *cobra.Command, args []string) {
 		fmt.Println(box)
 	}
 
-	fmt.Println(lipgloss.NewStyle().Foreground(subtleColor).Render(fmt.Sprintf("\n  OS: %s | Arch: %s", runtime.GOOS, runtime.GOARCH)))
+	fmt.Println(lipgloss.NewStyle().Foreground(ColorMuted).Render(fmt.Sprintf("\n  OS: %s | Arch: %s", runtime.GOOS, runtime.GOARCH)))
 	fmt.Println()
 }
 

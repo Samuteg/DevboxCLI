@@ -18,78 +18,75 @@ var (
 	errColor = color.New(color.FgRed).SprintFunc()
 	bold     = color.New(color.Bold).SprintFunc()
 
-	iconStepTodo   = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).SetString("○")
-	iconStepActive = lipgloss.NewStyle().Foreground(primaryColor).SetString("●")
-	iconStepDone   = lipgloss.NewStyle().Foreground(successColor).SetString("✔")
+	iconStepTodo   = lipgloss.NewStyle().Foreground(ColorSubtle).SetString("○")
+	iconStepActive = lipgloss.NewStyle().Foreground(ColorPrimary).SetString("●")
+	iconStepDone   = lipgloss.NewStyle().Foreground(ColorSuccess).SetString("✔")
 
-	textStepTodo   = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	textStepActive = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFF")).Bold(true)
+	textStepTodo   = lipgloss.NewStyle().Foreground(ColorSubtle)
+	textStepActive = lipgloss.NewStyle().Foreground(ColorWhite).Bold(true)
 	textStepDone   = lipgloss.NewStyle().Foreground(lipgloss.Color("#CCC")).Strikethrough(false)
-
-	errorColor     = lipgloss.Color("#E74C3C")
-	primaryColor   = lipgloss.Color("#7D56F4")
-	secondaryColor = lipgloss.Color("#00ADD8")
-	successColor   = lipgloss.Color("#27AE60")
 
 	successBox = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(successColor).
+			BorderForeground(ColorSuccess).
 			Padding(1, 2).
 			Bold(true).
 			MarginTop(1)
 
-	highlight = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
+	highlight = lipgloss.NewStyle().Foreground(ColorSecondary).Bold(true)
 
-	deleteColor  = errorColor
-	neutralColor = lipgloss.Color("242")
-
-	delStyle  = lipgloss.NewStyle().Foreground(deleteColor).Bold(true)
-	pathStyle = lipgloss.NewStyle().Foreground(neutralColor).Italic(true)
+	delStyle  = lipgloss.NewStyle().Foreground(ColorError).Bold(true)
+	pathStyle = lipgloss.NewStyle().Foreground(ColorMuted).Italic(true)
 
 	summaryBox = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(secondaryColor).
+			BorderForeground(ColorSecondary).
 			Padding(0, 2).
 			MarginTop(1)
 
-	addComponentColor = lipgloss.Color("#00ADD8")
-	addDirColor       = lipgloss.Color("#F1C40F")
+	treeBranch = lipgloss.NewStyle().Foreground(ColorSubtle).Render("├──")
+	treeLast   = lipgloss.NewStyle().Foreground(ColorSubtle).Render("└──")
 
-	treeBranch = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("├──")
-	treeLast   = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("└──")
-
-	featColor     = lipgloss.Color("#A3BE8C")
-	fixColor      = lipgloss.Color("#BF616A")
-	docsColor     = lipgloss.Color("#81A1C1")
-	refactorColor = lipgloss.Color("#B48EAD")
-
-	commitScopeStyle = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
-	commitTypeStyle  = lipgloss.NewStyle().Bold(true).Padding(0, 1).Foreground(lipgloss.Color("#FFF"))
+	commitScopeStyle = lipgloss.NewStyle().Foreground(ColorSecondary).Bold(true)
+	commitTypeStyle  = lipgloss.NewStyle().Bold(true).Padding(0, 1).Foreground(ColorWhite)
 
 	errorBanner = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(lipgloss.Color("#FFF")).
-			Background(errorColor).
+			Foreground(ColorWhite).
+			Background(ColorError).
 			Padding(0, 1)
 
 	errorContextStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#FFF")).
+				Foreground(ColorWhite).
 				Bold(true)
 
 	errorMessageStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("246"))
 
 	errorIcon = lipgloss.NewStyle().
-			Foreground(errorColor).
+			Foreground(ColorError).
 			SetString("✘")
 
-	targetColor = lipgloss.Color("#EBCB8B")
-	killColor   = lipgloss.Color("#BF616A")
-
 	pidStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Italic(true)
-	portStyle = lipgloss.NewStyle().Foreground(secondaryColor).Bold(true)
+	portStyle = lipgloss.NewStyle().Foreground(ColorSecondary).Bold(true)
 
-	skullIcon = lipgloss.NewStyle().Foreground(killColor).SetString("☠")
+	skullIcon = lipgloss.NewStyle().Foreground(ColorFix).SetString("☠")
+)
+
+// Aliases de compatibilidade temporários: outros comandos ainda usam os nomes
+// antigos e serão migrados nas tasks seguintes. Não usar em código novo —
+// prefira os tokens Color*.
+var (
+	primaryColor      = ColorPrimary
+	secondaryColor    = ColorSecondary
+	successColor      = ColorSuccess
+	featColor         = ColorFeat
+	fixColor          = ColorFix
+	docsColor         = ColorDocs
+	refactorColor     = ColorRefactor
+	addComponentColor = ColorSecondary
+	addDirColor       = ColorWarning
+	targetColor       = ColorStyle
 )
 
 const (
@@ -180,7 +177,7 @@ func ShowSuccessBox(projectName, stack string) {
 }
 
 func PrintBanner() {
-	style := lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Bold(true)
+	style := lipgloss.NewStyle().Foreground(ColorPrimary).Bold(true)
 
 	asciiArt := `
     ____  _______    ______  ____  _  __
@@ -190,7 +187,7 @@ func PrintBanner() {
 /_____/_____/  |___/_____/\____/_/|_|
 `
 	fmt.Println(style.Render(asciiArt))
-	fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(2).Render("v1.0.0 • Automation Tool"))
+	fmt.Println(lipgloss.NewStyle().Foreground(ColorSubtle).PaddingLeft(2).Render("v1.0.0 • Automation Tool"))
 	fmt.Println()
 }
 
@@ -222,7 +219,7 @@ func HandleError(err error, context string) {
 
 	fmt.Printf(stringHandler, errorIcon, errorMessageStyle.Render(err.Error()))
 
-	tip := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Italic(true).Render("  💡 Dica: Verifique as permissões ou use 'devbox --help'")
+	tip := lipgloss.NewStyle().Foreground(ColorSubtle).Italic(true).Render("  💡 Dica: Verifique as permissões ou use 'devbox --help'")
 	fmt.Println(tip)
 	fmt.Println()
 }

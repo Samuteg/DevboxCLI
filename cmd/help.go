@@ -12,16 +12,16 @@ import (
 var (
 	sectionStyle = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(primaryColor).
+			Foreground(ColorPrimary).
 			MarginTop(1).
 			MarginBottom(0).
 			PaddingLeft(1).
 			BorderStyle(lipgloss.NormalBorder()).
 			BorderLeft(true).
-			BorderForeground(primaryColor)
+			BorderForeground(ColorPrimary)
 
 	commandStyle = lipgloss.NewStyle().
-			Foreground(secondaryColor).
+			Foreground(ColorSecondary).
 			Bold(true).
 			Width(20)
 
@@ -29,10 +29,10 @@ var (
 			Foreground(lipgloss.Color("246"))
 
 	flagStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#F1C40F"))
+			Foreground(ColorWarning)
 
 	usageStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFF")).
+			Foreground(ColorWhite).
 			Background(lipgloss.Color("#333")).
 			Padding(0, 1)
 )
@@ -87,7 +87,7 @@ func helpFunc(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println()
-	footer := lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("240")).Render("  Use 'devbox [command] --help' para mais informações.")
+	footer := lipgloss.NewStyle().Italic(true).Foreground(ColorSubtle).Render("  Use 'devbox [command] --help' para mais informações.")
 	fmt.Println(footer)
 	fmt.Println()
 }
