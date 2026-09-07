@@ -11,7 +11,7 @@
     "#1": {
       "0409": {
         "identity": {
-          "name": "",
+          "name": "Devbox",
           "version": ""
         },
         "description": "",
@@ -43,14 +43,14 @@
           "0409": {
             "Comments": "",
             "CompanyName": "",
-            "FileDescription": "",
+            "FileDescription": "Devbox CLI",
             "FileVersion": "",
             "InternalName": "",
             "LegalCopyright": "",
             "LegalTrademarks": "",
             "OriginalFilename": "",
             "PrivateBuild": "",
-            "ProductName": "",
+            "ProductName": "Devbox",
             "ProductVersion": "",
             "SpecialBuild": ""
           }

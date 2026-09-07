@@ -59,7 +59,7 @@ A **Devbox CLI** elimina a fadiga de configuração inicial. Em vez de gastar ho
 | **Python**   | 3.11+         | Stack Python                  |
 | **Ruby**     | 3.0+          | Stack Ruby                    |
 
-> 💡 O comando `DevboxCLI doctor` detecta automaticamente o que está instalado e mostra o que precisa ser configurado.
+> 💡 O comando `devbox doctor` detecta automaticamente o que está instalado e mostra o que precisa ser configurado.
 
 ---
 
@@ -77,7 +77,7 @@ go install github.com/Samuteg/DevboxCLI@latest
 curl -sSL https://raw.githubusercontent.com/Samuteg/DevboxCLI/main/install.sh | bash
 ```
 
-> Após a instalação, o binário `DevboxCLI` estará disponível no seu `$PATH`.
+> Após a instalação, o binário `devbox` estará disponível no seu `$PATH`.
 
 ---
 
@@ -85,18 +85,18 @@ curl -sSL https://raw.githubusercontent.com/Samuteg/DevboxCLI/main/install.sh | 
 
 | Comando                         | Descrição                                                                 |
 | :------------------------------ | :-----------------------------------------------------------------------  |
-| `DevboxCLI init`                | Inicia um novo projeto com estrutura profissional                         |
-| `DevboxCLI add [tipo] [nome]`   | Cria componentes como Controllers e Usecases (Clean Arch)                |
-| `DevboxCLI commit`              | Wizard interativo para mensagens de commit padronizadas                   |
-| `DevboxCLI kill [porta]`        | Encerra o processo ocupando uma porta (ex: `8080`)                       |
-| `DevboxCLI config`              | Gerencia preferências no arquivo `~/.devbox.yaml`                        |
-| `DevboxCLI doctor`              | Verifica o estado das dependências instaladas                            |
-| `DevboxCLI cleanup`             | Limpa caches, `node_modules` e binários para liberar espaço              |
+| `devbox init`                | Inicia um novo projeto com estrutura profissional                         |
+| `devbox add [tipo] [nome]`   | Cria componentes como Controllers e Usecases (Clean Arch)                |
+| `devbox commit`              | Wizard interativo para mensagens de commit padronizadas                   |
+| `devbox kill [porta]`        | Encerra o processo ocupando uma porta (ex: `8080`)                       |
+| `devbox config`              | Gerencia preferências no arquivo `~/.devbox.yaml`                        |
+| `devbox doctor`              | Verifica o estado das dependências instaladas                            |
+| `devbox cleanup`             | Limpa caches, `node_modules` e binários para liberar espaço              |
 
 ### Exemplo: Criando um projeto Go com Clean Architecture
 
 ```bash
-DevboxCLI init
+devbox init
 # → Nome do Projeto: meu-api
 # → Tipo de Projeto: Backend
 # → Escolha a Tech: Go
@@ -137,7 +137,7 @@ update-channel: "stable"
 template-style: "clean"
 ```
 
-Use o comando `DevboxCLI config` para gerenciar essas preferências.
+Use o comando `devbox config` para gerenciar essas preferências.
 
 ---
 
@@ -163,7 +163,7 @@ cmd/templates/
     └── On_rails.zip    → Ruby on Rails
 ```
 
-Quando você executa `DevboxCLI init`:
+Quando você executa `devbox init`:
 
 1. O CLI identifica a stack e variante escolhidas
 2. Localiza o zip correspondente dentro do binário (via `//go:embed`)
