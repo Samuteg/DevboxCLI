@@ -31,6 +31,13 @@ Prefira os comandos diretos:
 	},
 }
 
+// registerDual registra o comando em projectCmd (legado) E no rootCmd (direto).
+// Evita duplicar o Run e mantém `devbox init` e `devbox project init` funcionando.
+func registerDual(c *cobra.Command) {
+	projectCmd.AddCommand(c)
+	rootCmd.AddCommand(c)
+}
+
 func init() {
 	rootCmd.AddCommand(projectCmd)
 }

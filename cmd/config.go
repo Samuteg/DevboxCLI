@@ -39,15 +39,27 @@ var configSetCmd = &cobra.Command{
 		key := strings.ToLower(args[0])
 		value := args[1]
 		if !isAllowedConfigKey(key) {
+			if jsonOutput {
+				printJSON(JSONResult{Success: false, Command: "config set", Message: fmt.Sprintf("unknown key %q", key)})
+				return
+			}
 			HandleError(fmt.Errorf("chave %q desconhecida (permitidas: author, default-port, update-channel, template-style)", key), "Configuração")
 			return
 		}
 		viper.Set(key, value)
 		if err := viper.WriteConfig(); err != nil {
+			if jsonOutput {
+				printJSON(JSONResult{Success: false, Command: "config set", Message: err.Error()})
+				return
+			}
 			HandleError(err, "Salvar Configuração")
 			return
 		}
 
+		if jsonOutput {
+			printJSON(JSONResult{Success: true, Command: "config set", Message: "config updated", Data: map[string]string{key: value}})
+			return
+		}
 		printStep("done", "Configuração atualizada!")
 		fmt.Printf("  %s %s\n\n",
 			lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render(fmt.Sprintf("%s =", key)),
@@ -64,6 +76,12 @@ var configGetCmd = &cobra.Command{
 		key := strings.ToLower(args[0])
 
 		value := viper.GetString(key)
+
+		if jsonOutput {
+			printJSON(JSONResult{Success: true, Command: "config get", Data: map[string]string{key: value}})
+			return
+		}
+
 		if value == "" {
 			value = lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("240")).Render("<vazio>")
 		} else {
@@ -81,9 +99,15 @@ var configListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "Lista todas as configurações definidas",
 	Run: func(cmd *cobra.Command, args []string) {
+		settings := viper.AllSettings()
+
+		if jsonOutput {
+			printJSON(JSONResult{Success: true, Command: "config list", Data: settings})
+			return
+		}
+
 		printStep("active", "Lendo ~/.devbox.yaml")
 
-		settings := viper.AllSettings()
 		if len(settings) == 0 {
 			printStep("warn", "Nenhuma configuração definida.")
 			return

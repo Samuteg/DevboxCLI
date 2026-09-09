@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -31,6 +30,10 @@ func runAdd(cmd *cobra.Command, args []string) {
 	}
 	if !scaffold.IsValidComponentType(resourceType) {
 		if resourceType != "" {
+			if jsonOutput {
+				printJSON(JSONResult{Success: false, Command: "add", Message: "unknown type '" + resourceType + "'"})
+				return
+			}
 			fmt.Printf("  %s \n", lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Render("Tipo '"+resourceType+"' desconhecido."))
 		}
 		resourceType = promptSelect("  O que você quer criar?", validTypes)
@@ -42,16 +45,34 @@ func runAdd(cmd *cobra.Command, args []string) {
 		resourceName = strings.TrimSpace(promptInput("  Qual o nome do componente?", "O nome é obrigatório", 2))
 	}
 	if !validation.IsValidComponentName(resourceName) {
-		HandleError(fmt.Errorf("nome %q inválido: use 2-64 caracteres alfanuméricos, '-' ou '_' (ex: user-profile)", resourceName), "Validação de Entrada")
-		os.Exit(1)
+		if jsonOutput {
+			printJSON(JSONResult{Success: false, Command: "add", Message: fmt.Sprintf("invalid name %q", resourceName)})
+			return
+		}
+		HandleErrorAndExit(fmt.Errorf("nome %q inválido: use 2-64 caracteres alfanuméricos, '-' ou '_' (ex: user-profile)", resourceName), "Validação de Entrada")
 	}
 
-	printStep("active", fmt.Sprintf("Gerando %s: %s", resourceType, resourceName))
+	if !jsonOutput {
+		printStep("active", fmt.Sprintf("Gerando %s: %s", resourceType, resourceName))
+	}
 
 	path, err := scaffold.CreateComponent(resourceType, resourceName, viper.GetString("author"))
 	if err != nil {
-		HandleError(err, "Criação de Componente")
-		os.Exit(1)
+		if jsonOutput {
+			printJSON(JSONResult{Success: false, Command: "add", Message: err.Error()})
+			return
+		}
+		HandleErrorAndExit(err, "Criação de Componente")
+	}
+
+	if jsonOutput {
+		printJSON(JSONResult{
+			Success: true,
+			Command: "add",
+			Message: "component created",
+			Data:    map[string]string{"name": resourceName, "type": resourceType, "path": path},
+		})
+		return
 	}
 
 	printStep("done", "Componente criado com sucesso!")
@@ -60,13 +81,6 @@ func runAdd(cmd *cobra.Command, args []string) {
 	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("Arquivo gerado:"))
 	renderDynamicTree(path)
 	fmt.Printf("  %s Arquivo: %s\n\n", success(IconStep), path)
-}
-
-func toTitle(raw string) string {
-	if raw == "" {
-		return raw
-	}
-	return strings.ToUpper(raw[:1]) + raw[1:]
 }
 
 func renderDynamicTree(path string) {
@@ -92,12 +106,5 @@ func renderDynamicTree(path string) {
 }
 
 func init() {
-	projectCmd.AddCommand(addCmd)
-	rootCmd.AddCommand(&cobra.Command{
-		Use:     "add [tipo] [nome]",
-		Short:   "Adiciona um novo componente ao projeto",
-		Example: "  devbox add controller user",
-		Args:    cobra.MaximumNArgs(2),
-		Run:     runAdd,
-	})
+	registerDual(addCmd)
 }

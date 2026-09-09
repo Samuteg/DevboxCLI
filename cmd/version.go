@@ -15,6 +15,14 @@ var versionCmd = &cobra.Command{
 	Short:   "Mostra a versão do Devbox CLI",
 	Example: "  devbox version",
 	Run: func(cmd *cobra.Command, args []string) {
+		if jsonOutput {
+			printJSON(JSONResult{
+				Success: true,
+				Command: "version",
+				Data:    map[string]string{"version": Version},
+			})
+			return
+		}
 		fmt.Printf("devbox v%s\n", Version)
 	},
 }

@@ -15,7 +15,23 @@ import (
 // ~81M (node); 128M dá margem sem aceitar arquivos absurdos.
 const maxTemplateBytes = 128 << 20
 
+// MaterializeTemplatesWithOverride tries override FS first, then falls back to primary.
+func MaterializeTemplatesWithOverride(primary, override fs.FS, sourceZip, targetRoot string) error {
+	fsys := primary
+	if override != nil {
+		if f, err := override.Open(sourceZip); err == nil {
+			f.Close()
+			fsys = override
+		}
+	}
+	return materializeFromFS(fsys, sourceZip, targetRoot)
+}
+
 func MaterializeTemplates(fsys fs.FS, sourceZip, targetRoot string) error {
+	return materializeFromFS(fsys, sourceZip, targetRoot)
+}
+
+func materializeFromFS(fsys fs.FS, sourceZip, targetRoot string) error {
 	f, err := fsys.Open(sourceZip)
 	if err != nil {
 		return err

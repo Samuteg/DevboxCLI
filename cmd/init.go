@@ -37,12 +37,10 @@ func runInit(cmd *cobra.Command, args []string) {
 	projectName := promptInput("  Nome do Projeto", "Nome muito curto (min 2 caracteres)", 2)
 	projectName = strings.TrimSpace(projectName)
 	if !validation.IsValidProjectName(projectName) {
-		HandleError(fmt.Errorf("nome %q inválido: use 2-64 caracteres alfanuméricos, '-' ou '_' (ex: meu-api)", projectName), "Validação de Entrada")
-		os.Exit(1)
+		HandleErrorAndExit(fmt.Errorf("nome %q inválido: use 2-64 caracteres alfanuméricos, '-' ou '_' (ex: meu-api)", projectName), "Validação de Entrada")
 	}
 	if _, err := os.Stat(projectName); err == nil {
-		HandleError(fmt.Errorf("diretório %q já existe", projectName), "Validação de Entrada")
-		os.Exit(1)
+		HandleErrorAndExit(fmt.Errorf("diretório %q já existe", projectName), "Validação de Entrada")
 	}
 	projectType := promptSelect("  💻 Tipo de Projeto", []string{"Backend", "Frontend"})
 
@@ -76,20 +74,43 @@ func runInit(cmd *cobra.Command, args []string) {
 }
 
 func handleBackend(name string, s scaffold.Stack) {
-	printStep("active", "Gerando arquivos e diretórios...")
+	if !jsonOutput {
+		printStep("active", "Gerando arquivos e diretórios...")
+	}
+	var createdDirs []string
 	err := withSpinner("Escaneando templates...", func() error {
 		if err := os.MkdirAll(name, 0755); err != nil {
 			return fmt.Errorf("criação da pasta do projeto: %w", err)
 		}
+		createdDirs = append(createdDirs, name)
 		for _, d := range s.ExtraDirs {
 			if err := os.MkdirAll(filepath.Join(name, d), 0755); err != nil {
 				return fmt.Errorf("criação de diretórios adicionais: %w", err)
 			}
+			createdDirs = append(createdDirs, filepath.Join(name, d))
 		}
-		return scaffold.MaterializeTemplates(templatesFS, s.Source, name)
+		if err := scaffold.MaterializeTemplates(templatesFS, s.Source, name); err != nil {
+			return err
+		}
+		createSnapshot(name, createdDirs)
+		return nil
 	})
 	if err != nil {
+		if jsonOutput {
+			printJSON(JSONResult{Success: false, Command: "init", Message: err.Error()})
+			return
+		}
 		HandleError(err, "Geração de templates")
+		return
+	}
+
+	if jsonOutput {
+		printJSON(JSONResult{
+			Success: true,
+			Command: "init",
+			Message: "project created",
+			Data:    map[string]string{"name": name, "path": name, "stack": s.Name, "type": "backend"},
+		})
 		return
 	}
 
@@ -130,10 +151,16 @@ func detectPackageManager(projectDir string) (string, []string) {
 }
 
 func handleFrontend(name string, s scaffold.Stack) {
-	fmt.Printf("\n🎨 %s\n", info("Iniciando gerador oficial do "+s.Name))
+	if !jsonOutput {
+		fmt.Printf("\n🎨 %s\n", info("Iniciando gerador oficial do "+s.Name))
+	}
 
 	templateParts := strings.Fields(s.Source)
 	if len(templateParts) == 0 {
+		if jsonOutput {
+			printJSON(JSONResult{Success: false, Command: "init", Message: "empty frontend stack command"})
+			return
+		}
 		HandleError(errors.New("comando vazio para stack frontend"), "Configuração de Stack")
 		return
 	}
@@ -151,7 +178,21 @@ func handleFrontend(name string, s scaffold.Stack) {
 	}
 
 	if err := system.Execute(commandName, args, ""); err != nil {
+		if jsonOutput {
+			printJSON(JSONResult{Success: false, Command: "init", Message: err.Error()})
+			return
+		}
 		HandleError(err, "Execução do gerador frontend")
+		return
+	}
+
+	if jsonOutput {
+		printJSON(JSONResult{
+			Success: true,
+			Command: "init",
+			Message: "project created",
+			Data:    map[string]string{"name": name, "path": name, "stack": s.Name, "type": "frontend"},
+		})
 		return
 	}
 
@@ -173,8 +214,7 @@ func promptInput(label, errMsg string, minLen int) string {
 		if promptAborted(err) {
 			os.Exit(0)
 		}
-		HandleError(err, "Entrada do usuário")
-		os.Exit(1)
+		HandleErrorAndExit(err, "Entrada do usuário")
 	}
 	return value
 }
@@ -193,22 +233,13 @@ func promptSelect(label string, items []string) string {
 		if promptAborted(err) {
 			os.Exit(0)
 		}
-		HandleError(err, "Seleção de opção")
-		os.Exit(1)
+		HandleErrorAndExit(err, "Seleção de opção")
 	}
 	return value
 }
 
 func init() {
-	projectCmd.AddCommand(initCmd)
-	// Alias no root: `devbox init` (o grupo `project` é legado).
-	rootInitAlias := &cobra.Command{
-		Use:     "init",
-		Short:   "Inicializa um novo projeto",
-		Example: "  devbox init",
-		Run:     runInit,
-	}
-	rootCmd.AddCommand(rootInitAlias)
+	registerDual(initCmd)
 }
 
 func promptVariant(variants []scaffold.Variant) scaffold.Variant {
@@ -225,8 +256,7 @@ func promptVariant(variants []scaffold.Variant) scaffold.Variant {
 		if promptAborted(err) {
 			os.Exit(0)
 		}
-		HandleError(err, "Seleção de variante")
-		os.Exit(1)
+		HandleErrorAndExit(err, "Seleção de variante")
 	}
 	for _, v := range variants {
 		if v.Name == value {

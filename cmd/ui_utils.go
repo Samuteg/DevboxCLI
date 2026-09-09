@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/Samuteg/DevboxCLI/internal/term"
@@ -204,4 +205,9 @@ func HandleError(err error, context string) {
 	tip := lipgloss.NewStyle().Foreground(ColorSubtle).Italic(true).Render("  💡 Dica: Verifique as permissões ou use 'devbox --help'")
 	fmt.Println(tip)
 	fmt.Println()
+}
+
+func HandleErrorAndExit(err error, context string) {
+	HandleError(err, context)
+	os.Exit(1)
 }

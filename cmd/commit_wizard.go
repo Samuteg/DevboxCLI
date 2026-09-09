@@ -37,8 +37,7 @@ func runCommitWizard(cmd *cobra.Command, args []string) {
 		if promptAborted(err) {
 			os.Exit(0)
 		}
-		HandleError(err, "Tipo de alteração")
-		os.Exit(1)
+		HandleErrorAndExit(err, "Tipo de alteração")
 	}
 
 	var scope string
@@ -49,8 +48,7 @@ func runCommitWizard(cmd *cobra.Command, args []string) {
 		if promptAborted(err) {
 			os.Exit(0)
 		}
-		HandleError(err, "Escopo do commit")
-		os.Exit(1)
+		HandleErrorAndExit(err, "Escopo do commit")
 	}
 	scope = strings.TrimSpace(scope)
 
@@ -72,8 +70,7 @@ func runCommitWizard(cmd *cobra.Command, args []string) {
 		if promptAborted(err) {
 			os.Exit(0)
 		}
-		HandleError(err, "Descrição do commit")
-		os.Exit(1)
+		HandleErrorAndExit(err, "Descrição do commit")
 	}
 	description = strings.TrimSpace(description)
 
@@ -100,8 +97,7 @@ func runCommitWizard(cmd *cobra.Command, args []string) {
 		if promptAborted(err) {
 			os.Exit(0)
 		}
-		HandleError(err, "Confirmação do commit")
-		os.Exit(1)
+		HandleErrorAndExit(err, "Confirmação do commit")
 	}
 	if !confirmed {
 		fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Render("  Commit cancelado pelo usuário."))
@@ -110,9 +106,17 @@ func runCommitWizard(cmd *cobra.Command, args []string) {
 
 	fmt.Println()
 	if out, err := exec.Command("git", "status", "--short").Output(); err != nil {
+		if jsonOutput {
+			printJSON(JSONResult{Success: false, Command: "commit", Message: "not a git repository or git unavailable"})
+			return
+		}
 		HandleError(fmt.Errorf("não é um repositório git ou git indisponível: %w", err), "Git status")
 		return
 	} else if len(strings.TrimSpace(string(out))) == 0 {
+		if jsonOutput {
+			printJSON(JSONResult{Success: true, Command: "commit", Message: "nothing to commit"})
+			return
+		}
 		printStep("warn", "Nada para commitar: working tree limpo.")
 		fmt.Println("  Próximo passo: edite arquivos e repita devbox commit")
 		return
@@ -121,9 +125,18 @@ func runCommitWizard(cmd *cobra.Command, args []string) {
 		fmt.Println(lipgloss.NewStyle().Foreground(ColorSubtle).PaddingLeft(4).Render(strings.TrimSpace(string(out))))
 		fmt.Println()
 	}
-	printStep("active", "Preparando arquivos (git add .)")
-	fmt.Println(lipgloss.NewStyle().Foreground(ColorWarning).Render("  Atenção: 'git add .' inclui tudo, inclusive .env. Confira a lista acima."))
-	if err := exec.Command("git", "add", ".").Run(); err != nil {
+	safeFiles, skipped := collectSafeFiles()
+	if len(skipped) > 0 {
+		fmt.Println(lipgloss.NewStyle().Foreground(ColorWarning).Render(
+			fmt.Sprintf("  Arquivos ignorados (sensíveis): %s", strings.Join(skipped, ", "))))
+	}
+	if len(safeFiles) == 0 {
+		printStep("warn", "Nenhum arquivo seguro para adicionar.")
+		return
+	}
+	printStep("active", fmt.Sprintf("Adicionando %d arquivo(s) seguro(s)", len(safeFiles)))
+	gitArgs := append([]string{"add"}, safeFiles...)
+	if err := exec.Command("git", gitArgs...).Run(); err != nil {
 		HandleError(err, "Falha ao adicionar arquivos")
 		return
 	}
@@ -133,6 +146,10 @@ func runCommitWizard(cmd *cobra.Command, args []string) {
 
 	if output, err := cmdGit.CombinedOutput(); err != nil {
 		outStr := strings.TrimSpace(string(output))
+		if jsonOutput {
+			printJSON(JSONResult{Success: false, Command: "commit", Message: outStr})
+			return
+		}
 		if strings.Contains(outStr, "nothing to commit") {
 			printStep("warn", "Nada para commitar.")
 		} else {
@@ -141,9 +158,46 @@ func runCommitWizard(cmd *cobra.Command, args []string) {
 		}
 		fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(4).Render(string(output)))
 	} else {
+		if jsonOutput {
+			printJSON(JSONResult{
+				Success: true,
+				Command: "commit",
+				Message: "commit registered",
+				Data: map[string]string{"message": finalMsg, "type": commitType, "scope": scope, "description": description},
+			})
+			return
+		}
 		printStep("done", "Commit registrado")
 		showCommitSuccess(commitType, scope, description)
 	}
+}
+
+func isSensitiveFile(path string) bool {
+	base := strings.ToLower(path)
+	if strings.HasPrefix(base, ".env") {
+		return true
+	}
+	return strings.Contains(base, "secret") || strings.Contains(base, "credential")
+}
+
+func collectSafeFiles() ([]string, []string) {
+	out, err := exec.Command("git", "status", "--porcelain").Output()
+	if err != nil {
+		return nil, nil
+	}
+	var safe, skipped []string
+	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+		if len(line) < 4 {
+			continue
+		}
+		path := line[3:]
+		if isSensitiveFile(path) {
+			skipped = append(skipped, path)
+		} else {
+			safe = append(safe, path)
+		}
+	}
+	return safe, skipped
 }
 
 func showCommitSuccess(cType, scope, msg string) {
@@ -189,11 +243,5 @@ func showCommitSuccess(cType, scope, msg string) {
 }
 
 func init() {
-	projectCmd.AddCommand(commitWizardCmd)
-	rootCmd.AddCommand(&cobra.Command{
-		Use:     "commit",
-		Short:   "Assistente interativo para Conventional Commits",
-		Example: "  devbox commit",
-		Run:     runCommitWizard,
-	})
+	registerDual(commitWizardCmd)
 }

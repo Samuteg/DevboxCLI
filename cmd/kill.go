@@ -14,7 +14,6 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -28,30 +27,27 @@ var killCmd = &cobra.Command{
 	Example: "  devbox kill 8080\n  devbox kill 3000 --force\n  devbox kill 8080 --yes",
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		var port string
-		if len(args) > 0 {
-			port = args[0]
-		} else {
-			port = viper.GetString("default-port")
-			fmt.Printf("  %s %s\n\n",
-				lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Italic(true).Render("Nenhuma porta informada. Usando porta padrão:"),
-				lipgloss.NewStyle().Foreground(ColorSecondary).Render(port),
-			)
-		}
+		port := args[0]
 
 		clean, err := parsePort(port)
 		if err != nil {
+			if jsonOutput {
+				printJSON(JSONResult{Success: false, Command: "kill", Message: err.Error()})
+				return
+			}
 			HandleError(err, "Validação de Entrada")
 			fmt.Println("  Próximo passo: devbox kill 8080  (porta 1-65535)")
 			return
 		}
 		port = clean
 
-		fmt.Printf("  %s %s %s\n\n",
-			lipgloss.NewStyle().Foreground(ColorStyle).Render("🎯"),
-			"Rastreando alvo na porta:",
-			portStyle.Render(port),
-		)
+		if !jsonOutput {
+			fmt.Printf("  %s %s %s\n\n",
+				lipgloss.NewStyle().Foreground(ColorStyle).Render("🎯"),
+				"Rastreando alvo na porta:",
+				portStyle.Render(port),
+			)
+		}
 
 		if runtime.GOOS == "windows" {
 			killWindows(port)
@@ -73,7 +69,9 @@ func parsePort(raw string) (string, error) {
 }
 
 func killUnix(port string) {
-	printStep("active", "Buscando PID via lsof...")
+	if !jsonOutput {
+		printStep("active", "Buscando PID via lsof...")
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -81,6 +79,10 @@ func killUnix(port string) {
 	out, err := cmdFind.Output()
 
 	if err != nil || len(strings.TrimSpace(string(out))) == 0 {
+		if jsonOutput {
+			printJSON(JSONResult{Success: true, Command: "kill", Message: "no process found on port " + port, Data: map[string]interface{}{"port": port, "killed": 0}})
+			return
+		}
 		printStep("warn", "Nenhum processo ativo encontrado na porta")
 		return
 	}
@@ -96,7 +98,9 @@ func killUnix(port string) {
 		}
 	}
 
-	printStep("active", fmt.Sprintf("Processo(s) na porta %s: %s", port, pidStyle.Render(strings.Join(pids, ", "))))
+	if !jsonOutput {
+		printStep("active", fmt.Sprintf("Processo(s) na porta %s: %s", port, pidStyle.Render(strings.Join(pids, ", "))))
+	}
 
 	if !killYes && !killForce {
 		var confirmed bool
@@ -114,6 +118,10 @@ func killUnix(port string) {
 			return
 		}
 		if !confirmed {
+			if jsonOutput {
+				printJSON(JSONResult{Success: false, Command: "kill", Message: "cancelled by user", Data: map[string]interface{}{"port": port, "killed": 0}})
+				return
+			}
 			printStep("warn", "Operação cancelada pelo usuário")
 			return
 		}
@@ -125,7 +133,9 @@ func killUnix(port string) {
 		if killForce {
 			sig = "SIGKILL"
 		}
-		printStep("active", fmt.Sprintf("Enviando %s para PID %s...", sig, p))
+		if !jsonOutput {
+			printStep("active", fmt.Sprintf("Enviando %s para PID %s...", sig, p))
+		}
 		if killForce {
 			if err := exec.Command("kill", "-9", p).Run(); err != nil {
 				HandleError(err, "Falha ao matar processo "+p)
@@ -143,7 +153,16 @@ func killUnix(port string) {
 	}
 
 	if killed == 0 {
+		if jsonOutput {
+			printJSON(JSONResult{Success: true, Command: "kill", Message: "no processes terminated", Data: map[string]interface{}{"port": port, "killed": 0}})
+			return
+		}
 		printStep("warn", "Nenhum processo foi terminado")
+		return
+	}
+
+	if jsonOutput {
+		printJSON(JSONResult{Success: true, Command: "kill", Message: fmt.Sprintf("process(es) terminated: %d", killed), Data: map[string]interface{}{"port": port, "killed": killed}})
 		return
 	}
 
@@ -152,14 +171,24 @@ func killUnix(port string) {
 }
 
 func killWindows(port string) {
-	printStep("active", "Executando PowerShell Stop-Process...")
+	if !jsonOutput {
+		printStep("active", "Executando PowerShell Stop-Process...")
+	}
 
 	command := fmt.Sprintf("(Get-NetTCPConnection -LocalPort %s -ErrorAction SilentlyContinue).OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force }", port)
 	cmd := exec.Command("powershell", "-Command", command)
 
 	if cmd.Run() != nil {
+		if jsonOutput {
+			printJSON(JSONResult{Success: true, Command: "kill", Message: "port appears free or access denied", Data: map[string]interface{}{"port": port, "killed": 0}})
+			return
+		}
 		printStep("warn", "Porta parece já estar livre ou acesso negado")
 	} else {
+		if jsonOutput {
+			printJSON(JSONResult{Success: true, Command: "kill", Message: "port cleared", Data: map[string]interface{}{"port": port, "killed": 1}})
+			return
+		}
 		printStep("done", "Porta liberada")
 		showKillFinal(port)
 	}

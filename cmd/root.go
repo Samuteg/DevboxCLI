@@ -18,8 +18,7 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		HandleError(err, "Falha Crítica")
-		os.Exit(1)
+		HandleErrorAndExit(err, "Falha Crítica")
 	}
 }
 
@@ -27,6 +26,8 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "arquivo de configuração (padrão: $HOME/.devbox.yaml)")
+
+	initJSONFlag()
 
 	rootCmd.SetHelpFunc(helpFunc)
 }

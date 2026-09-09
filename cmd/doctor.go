@@ -44,9 +44,11 @@ type CheckResult struct {
 }
 
 func runDoctor(cmd *cobra.Command, args []string) {
-	fmt.Println(lipgloss.NewStyle().Bold(true).Foreground(ColorWhite).Render("  🩺  DEVBOX DOCTOR"))
-	fmt.Println(lipgloss.NewStyle().Foreground(ColorMuted).Render("  Verificando dependências do sistema..."))
-	fmt.Println()
+	if !jsonOutput {
+		fmt.Println(lipgloss.NewStyle().Bold(true).Foreground(ColorWhite).Render("  🩺  DEVBOX DOCTOR"))
+		fmt.Println(lipgloss.NewStyle().Foreground(ColorMuted).Render("  Verificando dependências do sistema..."))
+		fmt.Println()
+	}
 
 	checks := []struct {
 		cmd      string
@@ -63,16 +65,18 @@ func runDoctor(cmd *cobra.Command, args []string) {
 		{"git", "Git", "https://git-scm.com/", false},
 	}
 
-	headers := lipgloss.JoinHorizontal(lipgloss.Top,
-		headerStyle.Width(colNameWidth).Render("FERRAMENTA"),
-		headerStyle.Width(colStatusWidth).Render("STATUS"),
-		headerStyle.Width(colMsgWidth).Render("DETALHES"),
-	)
+	if !jsonOutput {
+		headers := lipgloss.JoinHorizontal(lipgloss.Top,
+			headerStyle.Width(colNameWidth).Render("FERRAMENTA"),
+			headerStyle.Width(colStatusWidth).Render("STATUS"),
+			headerStyle.Width(colMsgWidth).Render("DETALHES"),
+		)
 
-	border := lipgloss.NewStyle().Foreground(ColorMuted).Render(strings.Repeat("─", colNameWidth+colStatusWidth+colMsgWidth+6))
+		border := lipgloss.NewStyle().Foreground(ColorMuted).Render(strings.Repeat("─", colNameWidth+colStatusWidth+colMsgWidth+6))
 
-	fmt.Println("  " + headers)
-	fmt.Println("  " + border)
+		fmt.Println("  " + headers)
+		fmt.Println("  " + border)
+	}
 
 	results := make([]CheckResult, len(checks))
 	var wg sync.WaitGroup
@@ -84,6 +88,30 @@ func runDoctor(cmd *cobra.Command, args []string) {
 		}(i, c.cmd, c.url, c.optional)
 	}
 	wg.Wait()
+
+	if jsonOutput {
+		type DoctorCheck struct {
+			Name    string `json:"name"`
+			Status  string `json:"status"`
+			Message string `json:"message"`
+			OK      bool   `json:"ok"`
+		}
+		var data []DoctorCheck
+		for i, r := range results {
+			data = append(data, DoctorCheck{
+				Name:    checks[i].name,
+				Status:  r.Status,
+				Message: r.Message,
+				OK:      r.Status == "ok",
+			})
+		}
+		printJSON(JSONResult{
+			Success: true,
+			Command: "doctor",
+			Data:    data,
+		})
+		return
+	}
 
 	hasError := false
 

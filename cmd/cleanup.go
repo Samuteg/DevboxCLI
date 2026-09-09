@@ -23,7 +23,9 @@ var cleanupCmd = &cobra.Command{
 }
 
 func runCleanup(cmd *cobra.Command, args []string) {
-	fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("244")).Render("  Iniciando limpeza profunda do ambiente...\n"))
+	if !jsonOutput {
+		fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("244")).Render("  Iniciando limpeza profunda do ambiente...\n"))
+	}
 
 	targets := []string{
 		"node_modules",
@@ -36,6 +38,10 @@ func runCleanup(cmd *cobra.Command, args []string) {
 
 	// Trava de projeto: não rodar em $HOME ou fora de projeto reconhecível.
 	if !hasProjectMarker() && !cleanupYes {
+		if jsonOutput {
+			printJSON(JSONResult{Success: false, Command: "cleanup", Message: "no project marker found"})
+			return
+		}
 		HandleError(fmt.Errorf("nenhum marcador de projeto (go.mod, package.json, .git) no diretório atual"), "Segurança")
 		fmt.Println("  Rode dentro de um projeto ou use --yes para forçar.")
 		return
@@ -52,6 +58,10 @@ func runCleanup(cmd *cobra.Command, args []string) {
 	}
 
 	if len(foundPaths) == 0 {
+		if jsonOutput {
+			printJSON(JSONResult{Success: true, Command: "cleanup", Message: "nothing to clean", Data: map[string]interface{}{"removed": []string{}}})
+			return
+		}
 		fmt.Println(lipgloss.NewStyle().
 			Foreground(ColorSuccess).
 			Bold(true).
@@ -66,6 +76,10 @@ func runCleanup(cmd *cobra.Command, args []string) {
 	fmt.Println()
 
 	if cleanupDryRun {
+		if jsonOutput {
+			printJSON(JSONResult{Success: true, Command: "cleanup", Message: "dry run", Data: map[string]interface{}{"found": foundDisplay, "removed": []string{}}})
+			return
+		}
 		printStep("done", "Dry-run: nada foi removido.")
 		fmt.Println("  Para remover de verdade, rode sem --dry-run.")
 		return
@@ -84,10 +98,13 @@ func runCleanup(cmd *cobra.Command, args []string) {
 		if promptAborted(err) {
 			os.Exit(0)
 		}
-		HandleError(err, "Confirmação de limpeza")
-		os.Exit(1)
+		HandleErrorAndExit(err, "Confirmação de limpeza")
 	}
 	if !confirmed {
+		if jsonOutput {
+			printJSON(JSONResult{Success: false, Command: "cleanup", Message: "cancelled by user"})
+			return
+		}
 		fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Render("  Limpeza cancelada pelo usuário."))
 		return
 	}
@@ -107,6 +124,10 @@ func runCleanup(cmd *cobra.Command, args []string) {
 	}
 
 	if len(removedDirs) > 0 {
+		if jsonOutput {
+			printJSON(JSONResult{Success: true, Command: "cleanup", Message: "cleanup complete", Data: map[string]interface{}{"removed": removedDirs}})
+			return
+		}
 		showCleanupSummary(removedDirs)
 	}
 }
@@ -136,14 +157,5 @@ func showCleanupSummary(dirs []string) {
 func init() {
 	cleanupCmd.Flags().BoolVar(&cleanupDryRun, "dry-run", false, "mostra o que seria removido sem remover")
 	cleanupCmd.Flags().BoolVar(&cleanupYes, "yes", false, "pula confirmação (perigoso fora de projeto)")
-	projectCmd.AddCommand(cleanupCmd)
-	rootCleanup := &cobra.Command{
-		Use:     "cleanup",
-		Short:   "Remove arquivos temporários e dependências (node_modules, dist, etc)",
-		Example: "  devbox cleanup --dry-run",
-		Run:     runCleanup,
-	}
-	rootCleanup.Flags().BoolVar(&cleanupDryRun, "dry-run", false, "mostra o que seria removido sem remover")
-	rootCleanup.Flags().BoolVar(&cleanupYes, "yes", false, "pula confirmação (perigoso fora de projeto)")
-	rootCmd.AddCommand(rootCleanup)
+	registerDual(cleanupCmd)
 }

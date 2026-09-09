@@ -100,14 +100,13 @@ func toModelName(rawName string) string {
 }
 
 const controllerTemplate = `
-
 // Criado por: {{.Author}}
 
 // Gerado via Devbox CLI
 
-package controllers
+// TODO: Importe seu framework HTTP (ex: gin, echo, chi, fiber, etc.)
 
-import "github.com/gin-gonic/gin"
+package controllers
 
 type {{.Name}}Controller struct{}
 
@@ -115,8 +114,8 @@ func New{{.Name}}Controller() *{{.Name}}Controller {
 	return &{{.Name}}Controller{}
 }
 
-func (c *{{.Name}}Controller) Create(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{"message": "Create {{.Name}}"})
+func (c *{{.Name}}Controller) Create(ctx interface{}) {
+	// Ajuste o tipo de ctx e a chamada para seu framework
 }
 `
 
