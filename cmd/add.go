@@ -16,10 +16,11 @@ import (
 var validTypes = scaffold.ValidComponentTypes
 
 var addCmd = &cobra.Command{
-	Use:   "add [tipo] [nome]",
-	Short: "Adiciona um novo componente ao projeto",
-	Args:  cobra.MaximumNArgs(2),
-	Run:   runAdd,
+	Use:     "add [tipo] [nome]",
+	Short:   "Adiciona um novo componente ao projeto",
+	Example: "  devbox add controller user\n  devbox add usecase checkout",
+	Args:    cobra.MaximumNArgs(2),
+	Run:     runAdd,
 }
 
 func runAdd(cmd *cobra.Command, args []string) {
@@ -56,10 +57,9 @@ func runAdd(cmd *cobra.Command, args []string) {
 	printStep("done", "Componente criado com sucesso!")
 
 	fmt.Println()
-	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("📂 Arquivo gerado:"))
+	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("Arquivo gerado:"))
 	renderDynamicTree(path)
-
-	ShowSuccessBox(resourceName, toTitle(resourceType))
+	fmt.Printf("  %s Arquivo: %s\n\n", success(IconStep), path)
 }
 
 func toTitle(raw string) string {
@@ -93,4 +93,11 @@ func renderDynamicTree(path string) {
 
 func init() {
 	projectCmd.AddCommand(addCmd)
+	rootCmd.AddCommand(&cobra.Command{
+		Use:     "add [tipo] [nome]",
+		Short:   "Adiciona um novo componente ao projeto",
+		Example: "  devbox add controller user",
+		Args:    cobra.MaximumNArgs(2),
+		Run:     runAdd,
+	})
 }

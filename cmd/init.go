@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/Samuteg/DevboxCLI/internal/scaffold"
 	"github.com/Samuteg/DevboxCLI/internal/system"
@@ -24,9 +25,10 @@ var templatesFS embed.FS
 var stacks = scaffold.DefaultStacks()
 
 var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Inicializa um novo projeto",
-	Run:   runInit,
+	Use:     "init",
+	Short:   "Inicializa um novo projeto",
+	Example: "  devbox init\n  devbox project init",
+	Run:     runInit,
 }
 
 func runInit(cmd *cobra.Command, args []string) {
@@ -74,27 +76,19 @@ func runInit(cmd *cobra.Command, args []string) {
 
 func handleBackend(name string, s scaffold.Stack) {
 	printStep("active", "Gerando arquivos e diretórios...")
-	spin := NewSpinner(info(" Escaneando templates..."))
-	spin.Start()
-
-	if err := os.MkdirAll(name, 0755); err != nil {
-		spin.Stop()
-		HandleError(err, "Criação da pasta do projeto")
-		return
-	}
-
-	for _, d := range s.ExtraDirs {
-		if err := os.MkdirAll(filepath.Join(name, d), 0755); err != nil {
-			spin.Stop()
-			HandleError(err, "Criação de diretórios adicionais")
-			return
+	err := withSpinner("Escaneando templates...", func() error {
+		if err := os.MkdirAll(name, 0755); err != nil {
+			return fmt.Errorf("criação da pasta do projeto: %w", err)
 		}
-	}
-
-	walkErr := scaffold.MaterializeTemplates(templatesFS, s.Source, name)
-	spin.Stop()
-	if walkErr != nil {
-		HandleError(walkErr, "Geração de templates")
+		for _, d := range s.ExtraDirs {
+			if err := os.MkdirAll(filepath.Join(name, d), 0755); err != nil {
+				return fmt.Errorf("criação de diretórios adicionais: %w", err)
+			}
+		}
+		return scaffold.MaterializeTemplates(templatesFS, s.Source, name)
+	})
+	if err != nil {
+		HandleError(err, "Geração de templates")
 		return
 	}
 
@@ -104,14 +98,13 @@ func handleBackend(name string, s scaffold.Stack) {
 		packageJSONPath := filepath.Join(name, "package.json")
 		if _, err := os.Stat(packageJSONPath); err != nil {
 			printStep("todo", "package.json não encontrado; instalação automática ignorada")
+		} else if _, err := os.Stat(filepath.Join(name, "node_modules")); err == nil {
+			printStep("todo", "node_modules já existe no template; 'npm install' ignorado")
 		} else {
-			installSpin := NewSpinner(info("Instalando dependências (npm install)..."))
-			installSpin.Start()
-			if err := system.ExecuteSilent("npm", []string{"install"}, name); err != nil {
-				installSpin.Stop()
+			if err := withSpinner("Instalando dependências (npm install, pode levar minutos)...", func() error {
+				return system.ExecuteSilentWithTimeout("npm", []string{"install", "--no-audit", "--no-fund"}, name, 10*time.Minute)
+			}); err != nil {
 				LogWarning("Falha ao instalar dependências automaticamente. Rode 'npm install' manualmente.")
-			} else {
-				installSpin.Stop()
 			}
 		}
 	}
@@ -195,6 +188,14 @@ func promptSelect(label string, items []string) string {
 
 func init() {
 	projectCmd.AddCommand(initCmd)
+	// Alias no root: `devbox init` (o grupo `project` é legado).
+	rootInitAlias := &cobra.Command{
+		Use:     "init",
+		Short:   "Inicializa um novo projeto",
+		Example: "  devbox init",
+		Run:     runInit,
+	}
+	rootCmd.AddCommand(rootInitAlias)
 }
 
 func promptVariant(variants []scaffold.Variant) scaffold.Variant {

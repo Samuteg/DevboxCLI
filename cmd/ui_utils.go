@@ -4,18 +4,27 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Samuteg/DevboxCLI/internal/term"
 	"github.com/briandowns/spinner"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/fatih/color"
 )
 
+func styleRender(st lipgloss.Style) func(...interface{}) string {
+	return func(a ...interface{}) string {
+		if term.Plain() {
+			return fmt.Sprint(a...)
+		}
+		return st.Render(fmt.Sprint(a...))
+	}
+}
+
 var (
-	info     = color.New(color.FgCyan).SprintFunc()
-	success  = color.New(color.FgGreen).SprintFunc()
-	warning  = color.New(color.FgYellow).SprintFunc()
-	errColor = color.New(color.FgRed).SprintFunc()
-	bold     = color.New(color.Bold).SprintFunc()
+	info     = styleRender(lipgloss.NewStyle().Foreground(ColorSecondary))
+	success  = styleRender(lipgloss.NewStyle().Foreground(ColorSuccess))
+	warning  = styleRender(lipgloss.NewStyle().Foreground(ColorWarning))
+	errColor = styleRender(lipgloss.NewStyle().Foreground(ColorError))
+	bold     = styleRender(lipgloss.NewStyle().Bold(true))
 
 	iconStepTodo   = lipgloss.NewStyle().Foreground(ColorSubtle).SetString("○")
 	iconStepActive = lipgloss.NewStyle().Foreground(ColorPrimary).SetString("●")
@@ -91,27 +100,50 @@ func LogWarning(message string) {
 
 func NewSpinner(message string) *spinner.Spinner {
 	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	if term.Plain() {
+		s.Disable()
+		fmt.Println("  " + message)
+		return s
+	}
 	s.Suffix = " " + info(message)
 	s.Color("cyan")
 	return s
 }
 
+// withSpinner executa fn com spinner (ou log simples em modo plain/CI).
+func withSpinner(message string, fn func() error) error {
+	if term.Plain() {
+		fmt.Println("  " + message)
+		return fn()
+	}
+	s := NewSpinner(message)
+	s.Start()
+	defer s.Stop()
+	return fn()
+}
+
 func ShowSuccessBox(projectName, stack string) {
-	fmt.Println(bold("\n✨ Projeto criado com sucesso!"))
-	fmt.Println(color.MagentaString("---------------------------------"))
+	rule := lipgloss.NewStyle().Foreground(ColorSecondary).Render("---------------------------------")
+	if term.Plain() {
+		rule = "---------------------------------"
+	}
+	fmt.Println(bold("Projeto criado com sucesso!"))
+	fmt.Println(rule)
 
 	fmt.Printf("  %s %s %s\n", success(IconStep), bold("cd"), projectName)
 
 	switch stack {
 	case "Go":
-		fmt.Printf(stringHandler, success(IconStep), bold("go run main.go"))
+		fmt.Printf(stringHandler, success(IconStep), bold("go run ./..."))
 	case "Python":
 		fmt.Printf(stringHandler, success(IconStep), bold("python main.py"))
+	case "Vite", "Next", "Next.js":
+		fmt.Printf(stringHandler, success(IconStep), bold("pnpm dev"))
 	default:
-		fmt.Printf(stringHandler, success(IconStep), bold("npm run dev"))
+		fmt.Printf(stringHandler, success(IconStep), bold("veja o README do projeto"))
 	}
-	fmt.Println(color.MagentaString("---------------------------------"))
-	fmt.Println(info("  Dúvidas? Acesse nosso GitHub! 🚀\n"))
+	fmt.Println(rule)
+	fmt.Println(info("Duvidas? Acesse nosso GitHub!\n"))
 }
 
 func PrintBanner() {

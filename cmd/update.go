@@ -12,8 +12,9 @@ import (
 )
 
 var updateCmd = &cobra.Command{
-	Use:   "update",
-	Short: "Atualiza a devbox para a versão mais recente",
+	Use:     "update",
+	Short:   "Atualiza a devbox para a versão mais recente",
+	Example: "  devbox update",
 	Run: func(cmd *cobra.Command, args []string) {
 		updateCLI()
 	},
@@ -34,7 +35,11 @@ func updateCLI() {
 	}
 
 	// Compara as versões (SemVer)
-	vCurrent, _ := semver.Make(Version)
+	vCurrent, err := semver.Make(Version)
+	if err != nil {
+		HandleError(fmt.Errorf("versão local %q inválida: %w", Version, err), "Versão")
+		return
+	}
 	if latest.Version.LTE(vCurrent) {
 		printStep("done", "Você já está na última versão!")
 
@@ -59,7 +64,7 @@ func updateCLI() {
 		Background(ColorPrimary).
 		Padding(0, 1).
 		Bold(true).
-		Render(" UPDATE DISPONÍVEL ")
+		Render(" ATUALIZAÇÃO DISPONÍVEL ")
 
 	mainBox := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).

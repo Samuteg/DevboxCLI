@@ -137,4 +137,13 @@ func init() {
 	cleanupCmd.Flags().BoolVar(&cleanupDryRun, "dry-run", false, "mostra o que seria removido sem remover")
 	cleanupCmd.Flags().BoolVar(&cleanupYes, "yes", false, "pula confirmação (perigoso fora de projeto)")
 	projectCmd.AddCommand(cleanupCmd)
+	rootCleanup := &cobra.Command{
+		Use:     "cleanup",
+		Short:   "Remove arquivos temporários e dependências (node_modules, dist, etc)",
+		Example: "  devbox cleanup --dry-run",
+		Run:     runCleanup,
+	}
+	rootCleanup.Flags().BoolVar(&cleanupDryRun, "dry-run", false, "mostra o que seria removido sem remover")
+	rootCleanup.Flags().BoolVar(&cleanupYes, "yes", false, "pula confirmação (perigoso fora de projeto)")
+	rootCmd.AddCommand(rootCleanup)
 }

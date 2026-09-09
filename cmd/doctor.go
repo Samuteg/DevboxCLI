@@ -12,9 +12,10 @@ import (
 )
 
 var doctorCmd = &cobra.Command{
-	Use:   "doctor",
-	Short: "Verifica a saúde do ambiente de desenvolvimento",
-	Run:   runDoctor,
+	Use:     "doctor",
+	Short:   "Verifica a saúde do ambiente de desenvolvimento",
+	Example: "  devbox doctor",
+	Run:     runDoctor,
 }
 
 var (
@@ -29,8 +30,8 @@ var (
 
 	checkStyle = lipgloss.NewStyle().Padding(0, 1)
 
-	iconSuccess = lipgloss.NewStyle().Foreground(ColorSuccess).SetString("✔ PASSED")
-	iconFail    = lipgloss.NewStyle().Foreground(ColorError).SetString("✖ FAILED")
+	iconSuccess = lipgloss.NewStyle().Foreground(ColorSuccess).SetString("OK")
+	iconFail    = lipgloss.NewStyle().Foreground(ColorError).SetString("FALHOU")
 )
 
 type CheckResult struct {
