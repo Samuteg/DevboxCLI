@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
@@ -99,21 +100,33 @@ func handleBackend(name string, s scaffold.Stack) {
 		if _, err := os.Stat(packageJSONPath); err != nil {
 			printStep("todo", "package.json não encontrado; instalação automática ignorada")
 		} else if _, err := os.Stat(filepath.Join(name, "node_modules")); err == nil {
-			printStep("todo", "node_modules já existe no template; 'npm install' ignorado")
+			printStep("todo", "node_modules já existe no template; instalação ignorada")
 		} else {
-			if err := withSpinner("Instalando dependências (npm install, pode levar minutos)...", func() error {
-				return system.ExecuteSilentWithTimeout("npm", []string{"install", "--no-audit", "--no-fund"}, name, 10*time.Minute)
+			installMgr, installArgs := detectPackageManager(name)
+			if err := withSpinner(fmt.Sprintf("Instalando dependências (%s, pode levar minutos)...", strings.Join(append([]string{installMgr}, installArgs...), " ")), func() error {
+				return system.ExecuteSilentWithTimeout(installMgr, installArgs, name, 10*time.Minute)
 			}); err != nil {
-				LogWarning("Falha ao instalar dependências automaticamente. Rode 'npm install' manualmente.")
+				LogWarning(fmt.Sprintf("Falha ao instalar dependências automaticamente. Rode '%s %s' manualmente em ./%s.", installMgr, strings.Join(installArgs, " "), name))
 			}
 		}
 	}
 
 	fmt.Println()
-	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("📦 Estrutura criada:"))
+	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("Estrutura criada:"))
 	renderMinimalTree(name, s)
 
 	ShowSuccessBox(name, s.Name)
+}
+
+// detectPackageManager prefere pnpm quando há pnpm-lock.yaml e pnpm instalado;
+// caso contrário usa npm. Retorna (binário, args).
+func detectPackageManager(projectDir string) (string, []string) {
+	if _, err := os.Stat(filepath.Join(projectDir, "pnpm-lock.yaml")); err == nil {
+		if _, err := exec.LookPath("pnpm"); err == nil {
+			return "pnpm", []string{"install", "--prefer-offline"}
+		}
+	}
+	return "npm", []string{"install", "--no-audit", "--no-fund"}
 }
 
 func handleFrontend(name string, s scaffold.Stack) {
