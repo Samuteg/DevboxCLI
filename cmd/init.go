@@ -12,6 +12,7 @@ import (
 
 	"github.com/Samuteg/DevboxCLI/internal/scaffold"
 	"github.com/Samuteg/DevboxCLI/internal/system"
+	"github.com/Samuteg/DevboxCLI/internal/validation"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
@@ -30,7 +31,16 @@ var initCmd = &cobra.Command{
 
 func runInit(cmd *cobra.Command, args []string) {
 	printStep("active", "Configuração Inicial")
-	projectName := promptInput("  📁 Nome do Projeto", "Nome muito curto", 2)
+	projectName := promptInput("  Nome do Projeto", "Nome muito curto (min 2 caracteres)", 2)
+	projectName = strings.TrimSpace(projectName)
+	if !validation.IsValidProjectName(projectName) {
+		HandleError(fmt.Errorf("nome %q inválido: use 2-64 caracteres alfanuméricos, '-' ou '_' (ex: meu-api)", projectName), "Validação de Entrada")
+		os.Exit(1)
+	}
+	if _, err := os.Stat(projectName); err == nil {
+		HandleError(fmt.Errorf("diretório %q já existe", projectName), "Validação de Entrada")
+		os.Exit(1)
+	}
 	projectType := promptSelect("  💻 Tipo de Projeto", []string{"Backend", "Frontend"})
 
 	var options []string

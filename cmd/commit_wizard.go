@@ -39,7 +39,7 @@ var commitWizardCmd = &cobra.Command{
 
 		var scope string
 		if err := huh.NewInput().
-			Title("  🎯 Escopo (opcional)").
+			Title("Escopo (opcional, ex: api)").
 			Value(&scope).
 			Run(); err != nil {
 			if promptAborted(err) {
@@ -48,13 +48,18 @@ var commitWizardCmd = &cobra.Command{
 			HandleError(err, "Escopo do commit")
 			os.Exit(1)
 		}
+		scope = strings.TrimSpace(scope)
 
 		var description string
 		if err := huh.NewInput().
-			Title("  📝 Descrição curta").
+			Title("Descrição curta (max 72 caracteres)").
 			Validate(func(s string) error {
+				s = strings.TrimSpace(s)
 				if len(s) < 3 {
 					return fmt.Errorf("a descrição precisa de pelo menos 3 caracteres")
+				}
+				if len(s) > 72 {
+					return fmt.Errorf("descrição muito longa (%d/72): resuma em uma linha", len(s))
 				}
 				return nil
 			}).
@@ -66,6 +71,7 @@ var commitWizardCmd = &cobra.Command{
 			HandleError(err, "Descrição do commit")
 			os.Exit(1)
 		}
+		description = strings.TrimSpace(description)
 
 		finalMsg := commitType
 		if scope != "" {
@@ -99,7 +105,20 @@ var commitWizardCmd = &cobra.Command{
 		}
 
 		fmt.Println()
+		if out, err := exec.Command("git", "status", "--short").Output(); err != nil {
+			HandleError(fmt.Errorf("não é um repositório git ou git indisponível: %w", err), "Git status")
+			return
+		} else if len(strings.TrimSpace(string(out))) == 0 {
+			printStep("warn", "Nada para commitar: working tree limpo.")
+			fmt.Println("  Próximo passo: edite arquivos e repita devbox commit")
+			return
+		} else {
+			fmt.Println(lipgloss.NewStyle().Foreground(ColorSubtle).Render("  Arquivos com alteração:"))
+			fmt.Println(lipgloss.NewStyle().Foreground(ColorSubtle).PaddingLeft(4).Render(strings.TrimSpace(string(out))))
+			fmt.Println()
+		}
 		printStep("active", "Preparando arquivos (git add .)")
+		fmt.Println(lipgloss.NewStyle().Foreground(ColorWarning).Render("  Atenção: 'git add .' inclui tudo, inclusive .env. Confira a lista acima."))
 		if err := exec.Command("git", "add", ".").Run(); err != nil {
 			HandleError(err, "Falha ao adicionar arquivos")
 			return
@@ -109,7 +128,13 @@ var commitWizardCmd = &cobra.Command{
 		cmdGit := exec.Command("git", "commit", "-m", finalMsg)
 
 		if output, err := cmdGit.CombinedOutput(); err != nil {
-			printStep("warn", "Nada para commitar ou erro no Git.")
+			outStr := strings.TrimSpace(string(output))
+			if strings.Contains(outStr, "nothing to commit") {
+				printStep("warn", "Nada para commitar.")
+			} else {
+				HandleError(fmt.Errorf("git commit falhou: %s", outStr), "Git commit")
+				fmt.Println("  Próximo passo: confira 'git status' e tente de novo")
+			}
 			fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).PaddingLeft(4).Render(string(output)))
 		} else {
 			printStep("done", "Commit registrado")

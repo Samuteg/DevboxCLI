@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Samuteg/DevboxCLI/internal/scaffold"
+	"github.com/Samuteg/DevboxCLI/internal/validation"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -35,9 +36,13 @@ func runAdd(cmd *cobra.Command, args []string) {
 	}
 
 	if len(args) > 1 {
-		resourceName = args[1]
+		resourceName = strings.TrimSpace(args[1])
 	} else {
-		resourceName = promptInput("  Qual o nome do componente?", "O nome é obrigatório", 2)
+		resourceName = strings.TrimSpace(promptInput("  Qual o nome do componente?", "O nome é obrigatório", 2))
+	}
+	if !validation.IsValidComponentName(resourceName) {
+		HandleError(fmt.Errorf("nome %q inválido: use 2-64 caracteres alfanuméricos, '-' ou '_' (ex: user-profile)", resourceName), "Validação de Entrada")
+		os.Exit(1)
 	}
 
 	printStep("active", fmt.Sprintf("Gerando %s: %s", resourceType, resourceName))

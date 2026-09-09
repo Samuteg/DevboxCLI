@@ -7,6 +7,8 @@ import (
 	"slices"
 	"strings"
 	"text/template"
+
+	"github.com/Samuteg/DevboxCLI/internal/validation"
 )
 
 var ValidComponentTypes = []string{"controller", "usecase", "repository", "handler"}
@@ -16,6 +18,9 @@ func IsValidComponentType(componentType string) bool {
 }
 
 func CreateComponent(componentType, componentName, authorName string) (string, error) {
+	if !validation.IsValidComponentName(componentName) {
+		return "", fmt.Errorf("nome de componente inválido %q: use 2-64 caracteres alfanuméricos, '-', '_' (sem path ou espaços)", componentName)
+	}
 	modelName := toModelName(componentName)
 	fileName := strings.ToLower(componentName)
 
