@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"runtime"
 	"strings"
-	"unicode/utf8"
+	"sync"
+	"time"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
@@ -46,17 +48,18 @@ func runDoctor(cmd *cobra.Command, args []string) {
 	fmt.Println()
 
 	checks := []struct {
-		cmd  string
-		name string
-		url  string
+		cmd      string
+		name     string
+		url      string
+		optional bool
 	}{
-		{"go", "Go Lang", "https://go.dev/dl/"},
-		{"node", "Node.js", "https://nodejs.org/"},
-		{"npm", "NPM", "install node"},
-		{"pnpm", "PNPM", "npm install -g pnpm"},
-		{"python", "Python", "https://python.org"},
-		{"docker", "Docker", "https://docs.docker.com/get-docker/"},
-		{"git", "Git", "https://git-scm.com/"},
+		{"go", "Go Lang", "https://go.dev/dl/", false},
+		{"node", "Node.js", "https://nodejs.org/", false},
+		{"npm", "NPM", "instale o Node.js: https://nodejs.org/", false},
+		{"pnpm", "PNPM", "npm install -g pnpm", true},
+		{"python", "Python", "https://python.org", true},
+		{"docker", "Docker", "https://docs.docker.com/get-docker/", true},
+		{"git", "Git", "https://git-scm.com/", false},
 	}
 
 	headers := lipgloss.JoinHorizontal(lipgloss.Top,
@@ -70,24 +73,36 @@ func runDoctor(cmd *cobra.Command, args []string) {
 	fmt.Println("  " + headers)
 	fmt.Println("  " + border)
 
+	results := make([]CheckResult, len(checks))
+	var wg sync.WaitGroup
+	for i, c := range checks {
+		wg.Add(1)
+		go func(i int, tool, url string, optional bool) {
+			defer wg.Done()
+			results[i] = runOneCheck(tool, url, optional)
+		}(i, c.cmd, c.url, c.optional)
+	}
+	wg.Wait()
+
 	hasError := false
 
-	for _, c := range checks {
+	for i, r := range results {
 		var status, msg string
-
-		path, err := exec.LookPath(c.cmd)
-		if err != nil {
-			status = iconFail.String()
-			msg = lipgloss.NewStyle().Foreground(ColorError).Render("Instale via: " + c.url)
-			hasError = true
-		} else {
+		if r.Status == "ok" {
 			status = iconSuccess.String()
-			version := getVersion(c.cmd)
-			msg = lipgloss.NewStyle().Foreground(ColorMuted).Render(fmt.Sprintf("%s (%s)", path, version))
+			msg = lipgloss.NewStyle().Foreground(ColorMuted).Render(r.Message)
+		} else {
+			status = iconFail.String()
+			if checks[i].optional {
+				status += lipgloss.NewStyle().Foreground(ColorMuted).Render(" (opc)")
+			} else {
+				hasError = true
+			}
+			msg = lipgloss.NewStyle().Foreground(ColorError).Render("Instale via: " + r.Message)
 		}
 
 		row := lipgloss.JoinHorizontal(lipgloss.Top,
-			checkStyle.Width(colNameWidth).Foreground(ColorWhite).Render(c.name),
+			checkStyle.Width(colNameWidth).Foreground(ColorWhite).Render(checks[i].name),
 			checkStyle.Width(colStatusWidth).Render(status),
 			checkStyle.Width(colMsgWidth).Render(msg),
 		)
@@ -117,17 +132,23 @@ func runDoctor(cmd *cobra.Command, args []string) {
 	fmt.Println()
 }
 
+func runOneCheck(tool, url string, _ bool) CheckResult {
+	path, err := exec.LookPath(tool)
+	if err != nil {
+		return CheckResult{Name: tool, Status: "missing", Message: url}
+	}
+	version := getVersion(tool)
+	return CheckResult{Name: tool, Status: "ok", Message: fmt.Sprintf("%s (%s)", path, version)}
+}
+
 func getVersion(cmd string) string {
-	out, err := exec.Command(cmd, "--version").Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, cmd, "--version").Output()
 	if err != nil {
 		return "detectado"
 	}
-	v := strings.Split(string(out), "\n")[0]
-	v = strings.TrimSpace(v)
-	if utf8.RuneCountInString(v) > 15 {
-		runes := []rune(v)
-		return string(runes[:15]) + "..."
-	}
+	v := strings.TrimSpace(strings.Split(string(out), "\n")[0])
 	return v
 }
 
