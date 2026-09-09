@@ -41,15 +41,16 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	} else {
 		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
+		if err != nil {
+			return
+		}
 		viper.AddConfigPath(home)
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".devbox")
-		viper.AutomaticEnv()
-		viper.SetEnvPrefix("DEVBOX")
 		configPath := filepath.Join(home, ".devbox.yaml")
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
-			os.WriteFile(configPath, []byte(""), 0644)
+			// Cria uma vez; erro aqui não é fatal (ex: $HOME readonly).
+			_ = os.WriteFile(configPath, []byte(""), 0644)
 		}
 	}
 

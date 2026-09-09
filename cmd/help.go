@@ -22,7 +22,7 @@ var (
 	commandStyle = lipgloss.NewStyle().
 			Foreground(ColorSecondary).
 			Bold(true).
-			Width(20)
+			Width(24)
 
 	descStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("246"))
@@ -31,8 +31,8 @@ var (
 			Foreground(ColorWarning)
 
 	usageStyle = lipgloss.NewStyle().
-			Foreground(ColorWhite).
-			Background(lipgloss.Color("#333")).
+			Foreground(ColorSecondary).
+			Bold(true).
 			Padding(0, 1)
 )
 
@@ -91,14 +91,14 @@ func helpFunc(cmd *cobra.Command, args []string) {
 			}
 
 			fmt.Printf("  %s%s\n",
-				flagStyle.Width(20).Render(name),
+				flagStyle.Width(24).Render(name),
 				descStyle.Render(f.Usage),
 			)
 		})
 	}
 
 	fmt.Println()
-	footer := lipgloss.NewStyle().Italic(true).Foreground(ColorSubtle).Render("  Use '" + cmd.CommandPath() + " [comando] --help' para mais informações.")
+	footer := lipgloss.NewStyle().Italic(true).Foreground(ColorSubtle).Render("  Use '" + cmd.CommandPath() + " --help' para detalhes (ex: 'devbox init --help').")
 	fmt.Println(footer)
 	fmt.Println()
 }

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Samuteg/DevboxCLI/internal/scaffold"
+	"github.com/Samuteg/DevboxCLI/internal/validation"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -15,10 +16,11 @@ import (
 var validTypes = scaffold.ValidComponentTypes
 
 var addCmd = &cobra.Command{
-	Use:   "add [tipo] [nome]",
-	Short: "Adiciona um novo componente ao projeto",
-	Args:  cobra.MaximumNArgs(2),
-	Run:   runAdd,
+	Use:     "add [tipo] [nome]",
+	Short:   "Adiciona um novo componente ao projeto",
+	Example: "  devbox add controller user\n  devbox add usecase checkout",
+	Args:    cobra.MaximumNArgs(2),
+	Run:     runAdd,
 }
 
 func runAdd(cmd *cobra.Command, args []string) {
@@ -35,9 +37,13 @@ func runAdd(cmd *cobra.Command, args []string) {
 	}
 
 	if len(args) > 1 {
-		resourceName = args[1]
+		resourceName = strings.TrimSpace(args[1])
 	} else {
-		resourceName = promptInput("  Qual o nome do componente?", "O nome é obrigatório", 2)
+		resourceName = strings.TrimSpace(promptInput("  Qual o nome do componente?", "O nome é obrigatório", 2))
+	}
+	if !validation.IsValidComponentName(resourceName) {
+		HandleError(fmt.Errorf("nome %q inválido: use 2-64 caracteres alfanuméricos, '-' ou '_' (ex: user-profile)", resourceName), "Validação de Entrada")
+		os.Exit(1)
 	}
 
 	printStep("active", fmt.Sprintf("Gerando %s: %s", resourceType, resourceName))
@@ -51,10 +57,9 @@ func runAdd(cmd *cobra.Command, args []string) {
 	printStep("done", "Componente criado com sucesso!")
 
 	fmt.Println()
-	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("📂 Arquivo gerado:"))
+	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("Arquivo gerado:"))
 	renderDynamicTree(path)
-
-	ShowSuccessBox(resourceName, toTitle(resourceType))
+	fmt.Printf("  %s Arquivo: %s\n\n", success(IconStep), path)
 }
 
 func toTitle(raw string) string {
@@ -88,4 +93,11 @@ func renderDynamicTree(path string) {
 
 func init() {
 	projectCmd.AddCommand(addCmd)
+	rootCmd.AddCommand(&cobra.Command{
+		Use:     "add [tipo] [nome]",
+		Short:   "Adiciona um novo componente ao projeto",
+		Example: "  devbox add controller user",
+		Args:    cobra.MaximumNArgs(2),
+		Run:     runAdd,
+	})
 }

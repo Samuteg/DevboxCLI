@@ -10,8 +10,25 @@ import (
 )
 
 var configCmd = &cobra.Command{
-	Use:   "config",
-	Short: "Gere as configurações da Devbox",
+	Use:     "config",
+	Short:   "Gere as configurações da Devbox",
+	Example: "  devbox config list\n  devbox config get author\n  devbox config set author \"Seu Nome\"",
+	Run: func(cmd *cobra.Command, args []string) {
+		// `devbox config` sem args lista (antes era vazio).
+		configListCmd.Run(cmd, args)
+	},
+}
+
+// allowedConfigKeys é a whitelist de chaves válidas.
+var allowedConfigKeys = map[string]bool{
+	"author":         true,
+	"default-port":   true,
+	"update-channel": true,
+	"template-style": true,
+}
+
+func isAllowedConfigKey(key string) bool {
+	return allowedConfigKeys[key]
 }
 
 var configSetCmd = &cobra.Command{
@@ -21,6 +38,10 @@ var configSetCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		key := strings.ToLower(args[0])
 		value := args[1]
+		if !isAllowedConfigKey(key) {
+			HandleError(fmt.Errorf("chave %q desconhecida (permitidas: author, default-port, update-channel, template-style)", key), "Configuração")
+			return
+		}
 		viper.Set(key, value)
 		if err := viper.WriteConfig(); err != nil {
 			HandleError(err, "Salvar Configuração")

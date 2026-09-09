@@ -1,21 +1,32 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
+	"time"
 
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+var (
+	killForce bool
+	killYes   bool
+)
+
 var killCmd = &cobra.Command{
-	Use:   "kill [porta]",
-	Short: "Termina o processo que está ocupando uma porta específica",
-	Args:  cobra.ExactArgs(1),
+	Use:     "kill [porta]",
+	Short:   "Termina o processo que está ocupando uma porta específica",
+	Example: "  devbox kill 8080\n  devbox kill 3000 --force\n  devbox kill 8080 --yes",
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var port string
 		if len(args) > 0 {
@@ -28,11 +39,13 @@ var killCmd = &cobra.Command{
 			)
 		}
 
-		validPort := regexp.MustCompile(`^[0-9]+$`)
-		if !validPort.MatchString(port) {
-			HandleError(fmt.Errorf("porta '%s' é inválida", port), "Validação de Entrada")
+		clean, err := parsePort(port)
+		if err != nil {
+			HandleError(err, "Validação de Entrada")
+			fmt.Println("  Próximo passo: devbox kill 8080  (porta 1-65535)")
 			return
 		}
+		port = clean
 
 		fmt.Printf("  %s %s %s\n\n",
 			lipgloss.NewStyle().Foreground(ColorStyle).Render("🎯"),
@@ -48,10 +61,23 @@ var killCmd = &cobra.Command{
 	},
 }
 
+func parsePort(raw string) (string, error) {
+	if !regexp.MustCompile(`^[0-9]{1,5}$`).MatchString(raw) {
+		return "", fmt.Errorf("porta %q é inválida: use número de 1 a 65535 (ex: devbox kill 8080)", raw)
+	}
+	n, err := strconv.Atoi(raw)
+	if err != nil || n < 1 || n > 65535 {
+		return "", fmt.Errorf("porta %q é inválida: use número de 1 a 65535 (ex: devbox kill 8080)", raw)
+	}
+	return strconv.Itoa(n), nil
+}
+
 func killUnix(port string) {
 	printStep("active", "Buscando PID via lsof...")
 
-	cmdFind := exec.Command("lsof", "-t", "-i:"+port)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cmdFind := exec.CommandContext(ctx, "lsof", "-t", "-i:"+port)
 	out, err := cmdFind.Output()
 
 	if err != nil || len(strings.TrimSpace(string(out))) == 0 {
@@ -70,19 +96,50 @@ func killUnix(port string) {
 		}
 	}
 
-	printStep("active", fmt.Sprintf("Encerrando processo %s", pidStyle.Render("("+pid+")")))
+	printStep("active", fmt.Sprintf("Processo(s) na porta %s: %s", port, pidStyle.Render(strings.Join(pids, ", "))))
+
+	if !killYes && !killForce {
+		var confirmed bool
+		if err := huh.NewConfirm().
+			Title(fmt.Sprintf("Encerrar %d processo(s) na porta %s?", len(pids), port)).
+			Description("Será enviado SIGTERM. Use --force para SIGKILL imediato.").
+			Affirmative("Sim").
+			Negative("Não").
+			Value(&confirmed).
+			Run(); err != nil {
+			if promptAborted(err) {
+				os.Exit(0)
+			}
+			HandleError(err, "Confirmação de kill")
+			return
+		}
+		if !confirmed {
+			printStep("warn", "Operação cancelada pelo usuário")
+			return
+		}
+	}
 
 	killed := 0
 	for _, p := range pids {
+		sig := "SIGTERM"
+		if killForce {
+			sig = "SIGKILL"
+		}
+		printStep("active", fmt.Sprintf("Enviando %s para PID %s...", sig, p))
+		if killForce {
+			if err := exec.Command("kill", "-9", p).Run(); err != nil {
+				HandleError(err, "Falha ao matar processo "+p)
+				return
+			}
+			killed++
+			continue
+		}
 		if exec.Command("kill", p).Run() == nil {
 			killed++
 			continue
 		}
-		if err := exec.Command("kill", "-9", p).Run(); err != nil {
-			HandleError(err, "Falha ao matar processo "+p)
-			return
-		}
-		killed++
+		HandleError(fmt.Errorf("PID %s não respondeu a SIGTERM; repita com --force para SIGKILL", p), "Kill")
+		return
 	}
 
 	if killed == 0 {
@@ -119,5 +176,7 @@ func showKillFinal(port string) {
 }
 
 func init() {
+	killCmd.Flags().BoolVarP(&killForce, "force", "f", false, "usa SIGKILL imediato (sem tentar SIGTERM)")
+	killCmd.Flags().BoolVarP(&killYes, "yes", "y", false, "pula confirmação interativa")
 	rootCmd.AddCommand(killCmd)
 }

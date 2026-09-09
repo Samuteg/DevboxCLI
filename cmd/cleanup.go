@@ -3,16 +3,23 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
+var (
+	cleanupDryRun bool
+	cleanupYes    bool
+)
+
 var cleanupCmd = &cobra.Command{
-	Use:   "cleanup",
-	Short: "Remove arquivos temporários e dependências (node_modules, dist, etc)",
-	Run:   runCleanup,
+	Use:     "cleanup",
+	Short:   "Remove arquivos temporários e dependências (node_modules, dist, etc)",
+	Example: "  devbox cleanup\n  devbox cleanup --dry-run\n  devbox cleanup --yes",
+	Run:     runCleanup,
 }
 
 func runCleanup(cmd *cobra.Command, args []string) {
@@ -27,14 +34,24 @@ func runCleanup(cmd *cobra.Command, args []string) {
 		"vendor",
 	}
 
-	var found []string
+	// Trava de projeto: não rodar em $HOME ou fora de projeto reconhecível.
+	if !hasProjectMarker() && !cleanupYes {
+		HandleError(fmt.Errorf("nenhum marcador de projeto (go.mod, package.json, .git) no diretório atual"), "Segurança")
+		fmt.Println("  Rode dentro de um projeto ou use --yes para forçar.")
+		return
+	}
+
+	var foundPaths []string
+	var foundDisplay []string
 	for _, target := range targets {
 		if _, err := os.Stat(target); err == nil {
-			found = append(found, target)
+			abs, _ := filepath.Abs(target)
+			foundPaths = append(foundPaths, target)
+			foundDisplay = append(foundDisplay, abs)
 		}
 	}
 
-	if len(found) == 0 {
+	if len(foundPaths) == 0 {
 		fmt.Println(lipgloss.NewStyle().
 			Foreground(ColorSuccess).
 			Bold(true).
@@ -43,15 +60,23 @@ func runCleanup(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	for _, f := range found {
+	for _, f := range foundDisplay {
 		printStep("todo", fmt.Sprintf("%s encontrado", f))
 	}
 	fmt.Println()
 
+	if cleanupDryRun {
+		printStep("done", "Dry-run: nada foi removido.")
+		fmt.Println("  Para remover de verdade, rode sem --dry-run.")
+		return
+	}
+
 	var confirmed bool
-	if err := huh.NewConfirm().
+	if cleanupYes {
+		confirmed = true
+	} else if err := huh.NewConfirm().
 		Title("Confirmar limpeza?").
-		Description(fmt.Sprintf("Serão removidos: %v", found)).
+		Description(fmt.Sprintf("Serão removidos: %v", foundDisplay)).
 		Affirmative("Sim").
 		Negative("Não").
 		Value(&confirmed).
@@ -69,7 +94,7 @@ func runCleanup(cmd *cobra.Command, args []string) {
 
 	fmt.Println()
 	var removedDirs []string
-	for _, target := range found {
+	for _, target := range foundPaths {
 		printStep("active", fmt.Sprintf("Removendo %s...", target))
 
 		err := os.RemoveAll(target)
@@ -86,6 +111,15 @@ func runCleanup(cmd *cobra.Command, args []string) {
 	}
 }
 
+func hasProjectMarker() bool {
+	for _, m := range []string{"go.mod", "package.json", ".git", "Cargo.toml", "pyproject.toml", "Gemfile"} {
+		if _, err := os.Stat(m); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
 func showCleanupSummary(dirs []string) {
 	title := lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render("LIMPEZA CONCLUÍDA")
 
@@ -100,5 +134,16 @@ func showCleanupSummary(dirs []string) {
 }
 
 func init() {
+	cleanupCmd.Flags().BoolVar(&cleanupDryRun, "dry-run", false, "mostra o que seria removido sem remover")
+	cleanupCmd.Flags().BoolVar(&cleanupYes, "yes", false, "pula confirmação (perigoso fora de projeto)")
 	projectCmd.AddCommand(cleanupCmd)
+	rootCleanup := &cobra.Command{
+		Use:     "cleanup",
+		Short:   "Remove arquivos temporários e dependências (node_modules, dist, etc)",
+		Example: "  devbox cleanup --dry-run",
+		Run:     runCleanup,
+	}
+	rootCleanup.Flags().BoolVar(&cleanupDryRun, "dry-run", false, "mostra o que seria removido sem remover")
+	rootCleanup.Flags().BoolVar(&cleanupYes, "yes", false, "pula confirmação (perigoso fora de projeto)")
+	rootCmd.AddCommand(rootCleanup)
 }

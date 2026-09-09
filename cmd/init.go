@@ -5,13 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/Samuteg/DevboxCLI/internal/scaffold"
 	"github.com/Samuteg/DevboxCLI/internal/system"
+	"github.com/Samuteg/DevboxCLI/internal/validation"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
@@ -23,14 +26,24 @@ var templatesFS embed.FS
 var stacks = scaffold.DefaultStacks()
 
 var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Inicializa um novo projeto",
-	Run:   runInit,
+	Use:     "init",
+	Short:   "Inicializa um novo projeto",
+	Example: "  devbox init\n  devbox project init",
+	Run:     runInit,
 }
 
 func runInit(cmd *cobra.Command, args []string) {
 	printStep("active", "Configuração Inicial")
-	projectName := promptInput("  📁 Nome do Projeto", "Nome muito curto", 2)
+	projectName := promptInput("  Nome do Projeto", "Nome muito curto (min 2 caracteres)", 2)
+	projectName = strings.TrimSpace(projectName)
+	if !validation.IsValidProjectName(projectName) {
+		HandleError(fmt.Errorf("nome %q inválido: use 2-64 caracteres alfanuméricos, '-' ou '_' (ex: meu-api)", projectName), "Validação de Entrada")
+		os.Exit(1)
+	}
+	if _, err := os.Stat(projectName); err == nil {
+		HandleError(fmt.Errorf("diretório %q já existe", projectName), "Validação de Entrada")
+		os.Exit(1)
+	}
 	projectType := promptSelect("  💻 Tipo de Projeto", []string{"Backend", "Frontend"})
 
 	var options []string
@@ -64,27 +77,19 @@ func runInit(cmd *cobra.Command, args []string) {
 
 func handleBackend(name string, s scaffold.Stack) {
 	printStep("active", "Gerando arquivos e diretórios...")
-	spin := NewSpinner(info(" Escaneando templates..."))
-	spin.Start()
-
-	if err := os.MkdirAll(name, 0755); err != nil {
-		spin.Stop()
-		HandleError(err, "Criação da pasta do projeto")
-		return
-	}
-
-	for _, d := range s.ExtraDirs {
-		if err := os.MkdirAll(filepath.Join(name, d), 0755); err != nil {
-			spin.Stop()
-			HandleError(err, "Criação de diretórios adicionais")
-			return
+	err := withSpinner("Escaneando templates...", func() error {
+		if err := os.MkdirAll(name, 0755); err != nil {
+			return fmt.Errorf("criação da pasta do projeto: %w", err)
 		}
-	}
-
-	walkErr := scaffold.MaterializeTemplates(templatesFS, s.Source, name)
-	spin.Stop()
-	if walkErr != nil {
-		HandleError(walkErr, "Geração de templates")
+		for _, d := range s.ExtraDirs {
+			if err := os.MkdirAll(filepath.Join(name, d), 0755); err != nil {
+				return fmt.Errorf("criação de diretórios adicionais: %w", err)
+			}
+		}
+		return scaffold.MaterializeTemplates(templatesFS, s.Source, name)
+	})
+	if err != nil {
+		HandleError(err, "Geração de templates")
 		return
 	}
 
@@ -94,23 +99,34 @@ func handleBackend(name string, s scaffold.Stack) {
 		packageJSONPath := filepath.Join(name, "package.json")
 		if _, err := os.Stat(packageJSONPath); err != nil {
 			printStep("todo", "package.json não encontrado; instalação automática ignorada")
+		} else if _, err := os.Stat(filepath.Join(name, "node_modules")); err == nil {
+			printStep("todo", "node_modules já existe no template; instalação ignorada")
 		} else {
-			installSpin := NewSpinner(info("Instalando dependências (npm install)..."))
-			installSpin.Start()
-			if err := system.ExecuteSilent("npm", []string{"install"}, name); err != nil {
-				installSpin.Stop()
-				LogWarning("Falha ao instalar dependências automaticamente. Rode 'npm install' manualmente.")
-			} else {
-				installSpin.Stop()
+			installMgr, installArgs := detectPackageManager(name)
+			if err := withSpinner(fmt.Sprintf("Instalando dependências (%s, pode levar minutos)...", strings.Join(append([]string{installMgr}, installArgs...), " ")), func() error {
+				return system.ExecuteSilentWithTimeout(installMgr, installArgs, name, 10*time.Minute)
+			}); err != nil {
+				LogWarning(fmt.Sprintf("Falha ao instalar dependências automaticamente. Rode '%s %s' manualmente em ./%s.", installMgr, strings.Join(installArgs, " "), name))
 			}
 		}
 	}
 
 	fmt.Println()
-	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("📦 Estrutura criada:"))
+	fmt.Println(lipgloss.NewStyle().Bold(true).MarginLeft(2).Render("Estrutura criada:"))
 	renderMinimalTree(name, s)
 
 	ShowSuccessBox(name, s.Name)
+}
+
+// detectPackageManager prefere pnpm quando há pnpm-lock.yaml e pnpm instalado;
+// caso contrário usa npm. Retorna (binário, args).
+func detectPackageManager(projectDir string) (string, []string) {
+	if _, err := os.Stat(filepath.Join(projectDir, "pnpm-lock.yaml")); err == nil {
+		if _, err := exec.LookPath("pnpm"); err == nil {
+			return "pnpm", []string{"install", "--prefer-offline"}
+		}
+	}
+	return "npm", []string{"install", "--no-audit", "--no-fund"}
 }
 
 func handleFrontend(name string, s scaffold.Stack) {
@@ -185,6 +201,14 @@ func promptSelect(label string, items []string) string {
 
 func init() {
 	projectCmd.AddCommand(initCmd)
+	// Alias no root: `devbox init` (o grupo `project` é legado).
+	rootInitAlias := &cobra.Command{
+		Use:     "init",
+		Short:   "Inicializa um novo projeto",
+		Example: "  devbox init",
+		Run:     runInit,
+	}
+	rootCmd.AddCommand(rootInitAlias)
 }
 
 func promptVariant(variants []scaffold.Variant) scaffold.Variant {

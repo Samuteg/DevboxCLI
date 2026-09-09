@@ -11,6 +11,8 @@ NC='\033[0m' # No Color
 
 REPO="Samuteg/DevboxCLI"
 BINARY_NAME="devbox"
+# Permite pinar versão: ./install.sh v1.2.3 (padrão: latest)
+PINNED_VERSION="${1:-latest}"
 
 echo -e "${PURPLE}🚀 A preparar a instalação da Devbox CLI...${NC}"
 
@@ -39,7 +41,11 @@ fi
 # 2. Obter a versão mais recente (Latest Release)
 # ──────────────────────────────────────────────
 echo -e "${CYAN}🔍 A procurar a versão mais recente...${NC}"
-LATEST_VERSION=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+if [ "$PINNED_VERSION" = "latest" ]; then
+    LATEST_VERSION=$(curl -fsSL --proto '=https' --tlsv1.2 "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+else
+    LATEST_VERSION="$PINNED_VERSION"
+fi
 
 if [ -z "$LATEST_VERSION" ]; then
     echo -e "${RED}❌ Não foi possível determinar a versão mais recente. Verifique a sua ligação à internet.${NC}"
@@ -57,8 +63,42 @@ DOWNLOAD_URL="https://github.com/$REPO/releases/download/${LATEST_VERSION}/${TAR
 TMP_DIR=$(mktemp -d)
 echo -e "${CYAN}⬇️ A transferir o binário de $DOWNLOAD_URL...${NC}"
 
-if curl -sL "$DOWNLOAD_URL" -o "$TMP_DIR/$TAR_FILE"; then
-    tar -xzf "$TMP_DIR/$TAR_FILE" -C "$TMP_DIR"
+if curl -fsSL --proto '=https' --tlsv1.2 "$DOWNLOAD_URL" -o "$TMP_DIR/$TAR_FILE"; then
+    # Verifica checksum: tenta o nome novo (checksums.txt) e o legado
+    # (DevboxCLI_<versão>_checksums.txt, padrão antigo do goreleaser).
+    CHECKSUM_OK=false
+    for SUM_NAME in "checksums.txt" "DevboxCLI_${LATEST_VERSION#v}_checksums.txt" "DevboxCLI_${LATEST_VERSION}_checksums.txt"; do
+        CHECKSUMS_URL="https://github.com/$REPO/releases/download/${LATEST_VERSION}/$SUM_NAME"
+        if curl -fsSL --proto '=https' --tlsv1.2 "$CHECKSUMS_URL" -o "$TMP_DIR/checksums.txt" 2>/dev/null; then
+            if grep -q " $TAR_FILE\$" "$TMP_DIR/checksums.txt" && (cd "$TMP_DIR" && grep " $TAR_FILE\$" checksums.txt | sha256sum -c --status -); then
+                echo -e "${GREEN}✅ Checksum verificado ($SUM_NAME).${NC}"
+                CHECKSUM_OK=true
+            else
+                echo -e "${RED}❌ Checksum inválido ou ausente para $TAR_FILE em $SUM_NAME! Abortando.${NC}"
+                rm -rf "$TMP_DIR"
+                exit 1
+            fi
+            break
+        fi
+    done
+    if [ "$CHECKSUM_OK" != true ]; then
+        echo -e "${YELLOW}⚠️  checksums.txt não encontrado; a instalar sem verificação.${NC}"
+    fi
+    tar -xzf "$TMP_DIR/$TAR_FILE" -C "$TMP_DIR" --no-same-owner
+    # Releases antigas (ex: v1.0.1) empacotam o binário como 'DevboxCLI';
+    # instalamos sempre como 'devbox'.
+    BIN_SRC=""
+    for cand in "$BINARY_NAME" "DevboxCLI"; do
+        if [ -f "$TMP_DIR/$cand" ]; then
+            BIN_SRC="$TMP_DIR/$cand"
+            break
+        fi
+    done
+    if [ -z "$BIN_SRC" ]; then
+        echo -e "${RED}❌ Binário ('$BINARY_NAME' ou 'DevboxCLI') não encontrado no pacote.${NC}"
+        rm -rf "$TMP_DIR"
+        exit 1
+    fi
 else
     echo -e "${RED}❌ Falha ao transferir o ficheiro. Verifique se a release existe no GitHub.${NC}"
     exit 1
@@ -100,8 +140,8 @@ add_to_path() {
 
 # Tenta instalação global (sudo).
 install_system_wide() {
-    local dst="/usr/local/bin"
-    if sudo mv "$TMP_DIR/$BINARY_NAME" "$dst/$BINARY_NAME" 2>/dev/null && sudo chmod +x "$dst/$BINARY_NAME"; then
+    local src="$1" dst="/usr/local/bin"
+    if sudo mv "$src" "$dst/$BINARY_NAME" 2>/dev/null && sudo chmod +x "$dst/$BINARY_NAME"; then
         echo -e "${GREEN}✅ Instalado em $dst/$BINARY_NAME${NC}"
         add_to_path "$dst" "$(detect_shell_config)"
         return 0
@@ -111,10 +151,10 @@ install_system_wide() {
 
 # Instalação local (sem sudo) e garante PATH.
 install_user_local() {
-    local dst="${XDG_DATA_HOME:-$HOME/.local}/bin"
+    local src="$1" dst="${XDG_DATA_HOME:-$HOME/.local}/bin"
     mkdir -p "$dst"
 
-    if mv "$TMP_DIR/$BINARY_NAME" "$dst/$BINARY_NAME" 2>/dev/null; then
+    if mv "$src" "$dst/$BINARY_NAME" 2>/dev/null; then
         chmod +x "$dst/$BINARY_NAME"
         echo -e "${GREEN}✅ Instalado em $dst/$BINARY_NAME${NC}"
 
@@ -133,16 +173,16 @@ install_user_local() {
 echo -e "${CYAN}⚙️  A instalar o binário...${NC}"
 
 if command -v sudo &>/dev/null; then
-    if install_system_wide; then
+    if install_system_wide "$BIN_SRC"; then
         INSTALL_OK=true
     else
         echo -e "${YELLOW}⚠️  Instalação global falhou. A tentar instalação local...${NC}"
-        if install_user_local; then
+        if install_user_local "$BIN_SRC"; then
             INSTALL_OK=true
         fi
     fi
 else
-    if install_user_local; then
+    if install_user_local "$BIN_SRC"; then
         INSTALL_OK=true
     fi
 fi
