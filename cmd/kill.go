@@ -23,10 +23,10 @@ var (
 )
 
 var killCmd = &cobra.Command{
-	Use:   "kill [porta]",
-	Short: "Termina o processo que está ocupando uma porta específica",
+	Use:     "kill [porta]",
+	Short:   "Termina o processo que está ocupando uma porta específica",
 	Example: "  devbox kill 8080\n  devbox kill 3000 --force\n  devbox kill 8080 --yes",
-	Args:  cobra.ExactArgs(1),
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var port string
 		if len(args) > 0 {
