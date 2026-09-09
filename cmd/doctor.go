@@ -34,6 +34,7 @@ var (
 
 	iconSuccess = lipgloss.NewStyle().Foreground(ColorSuccess).SetString("OK")
 	iconFail    = lipgloss.NewStyle().Foreground(ColorError).SetString("FALHOU")
+	iconMissing = lipgloss.NewStyle().Foreground(ColorWarning).SetString("AUSENTE (opc)")
 )
 
 type CheckResult struct {
@@ -91,13 +92,12 @@ func runDoctor(cmd *cobra.Command, args []string) {
 		if r.Status == "ok" {
 			status = iconSuccess.String()
 			msg = lipgloss.NewStyle().Foreground(ColorMuted).Render(r.Message)
+		} else if checks[i].optional {
+			status = iconMissing.String()
+			msg = lipgloss.NewStyle().Foreground(ColorMuted).Render("Opcional. Instale via: " + r.Message)
 		} else {
+			hasError = true
 			status = iconFail.String()
-			if checks[i].optional {
-				status += lipgloss.NewStyle().Foreground(ColorMuted).Render(" (opc)")
-			} else {
-				hasError = true
-			}
 			msg = lipgloss.NewStyle().Foreground(ColorError).Render("Instale via: " + r.Message)
 		}
 

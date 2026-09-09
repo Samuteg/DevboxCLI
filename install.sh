@@ -11,6 +11,8 @@ NC='\033[0m' # No Color
 
 REPO="Samuteg/DevboxCLI"
 BINARY_NAME="devbox"
+# Permite pinar versão: ./install.sh v1.2.3 (padrão: latest)
+PINNED_VERSION="${1:-latest}"
 
 echo -e "${PURPLE}🚀 A preparar a instalação da Devbox CLI...${NC}"
 
@@ -39,7 +41,11 @@ fi
 # 2. Obter a versão mais recente (Latest Release)
 # ──────────────────────────────────────────────
 echo -e "${CYAN}🔍 A procurar a versão mais recente...${NC}"
-LATEST_VERSION=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+if [ "$PINNED_VERSION" = "latest" ]; then
+    LATEST_VERSION=$(curl -fsSL --proto '=https' --tlsv1.2 "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+else
+    LATEST_VERSION="$PINNED_VERSION"
+fi
 
 if [ -z "$LATEST_VERSION" ]; then
     echo -e "${RED}❌ Não foi possível determinar a versão mais recente. Verifique a sua ligação à internet.${NC}"
@@ -57,8 +63,27 @@ DOWNLOAD_URL="https://github.com/$REPO/releases/download/${LATEST_VERSION}/${TAR
 TMP_DIR=$(mktemp -d)
 echo -e "${CYAN}⬇️ A transferir o binário de $DOWNLOAD_URL...${NC}"
 
-if curl -sL "$DOWNLOAD_URL" -o "$TMP_DIR/$TAR_FILE"; then
-    tar -xzf "$TMP_DIR/$TAR_FILE" -C "$TMP_DIR"
+if curl -fsSL --proto '=https' --tlsv1.2 "$DOWNLOAD_URL" -o "$TMP_DIR/$TAR_FILE"; then
+    # Verifica checksum quando o arquivo existe na release.
+    CHECKSUMS_URL="https://github.com/$REPO/releases/download/${LATEST_VERSION}/checksums.txt"
+    if curl -fsSL --proto '=https' --tlsv1.2 "$CHECKSUMS_URL" -o "$TMP_DIR/checksums.txt"; then
+        if grep -q " $TAR_FILE\$" "$TMP_DIR/checksums.txt" && (cd "$TMP_DIR" && grep " $TAR_FILE\$" checksums.txt | sha256sum -c --status -); then
+            echo -e "${GREEN}✅ Checksum verificado.${NC}"
+        else
+            echo -e "${RED}❌ Checksum inválido ou ausente para $TAR_FILE! Abortando.${NC}"
+            rm -rf "$TMP_DIR"
+            exit 1
+        fi
+    else
+        echo -e "${YELLOW}⚠️  checksums.txt não encontrado; a instalar sem verificação.${NC}"
+    fi
+    tar -xzf "$TMP_DIR/$TAR_FILE" -C "$TMP_DIR" --no-same-owner
+    # Valida que o binário esperado existe e nada estranho veio junto.
+    if [ ! -f "$TMP_DIR/$BINARY_NAME" ]; then
+        echo -e "${RED}❌ Binário '$BINARY_NAME' não encontrado no pacote.${NC}"
+        rm -rf "$TMP_DIR"
+        exit 1
+    fi
 else
     echo -e "${RED}❌ Falha ao transferir o ficheiro. Verifique se a release existe no GitHub.${NC}"
     exit 1
