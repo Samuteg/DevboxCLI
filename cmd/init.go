@@ -155,20 +155,14 @@ func handleFrontend(name string, s scaffold.Stack) {
 		fmt.Printf("\n🎨 %s\n", info("Iniciando gerador oficial do "+s.Name))
 	}
 
-	templateParts := strings.Fields(s.Source)
-	if len(templateParts) == 0 {
+	commandName, args := buildFrontendArgs(s.Source, name)
+	if commandName == "" {
 		if jsonOutput {
 			printJSON(JSONResult{Success: false, Command: "init", Message: "empty frontend stack command"})
 			return
 		}
 		HandleError(errors.New("comando vazio para stack frontend"), "Configuração de Stack")
 		return
-	}
-	commandName := templateParts[0]
-
-	args := make([]string, 0, len(templateParts)-1)
-	for _, p := range templateParts[1:] {
-		args = append(args, fmt.Sprintf(p, name))
 	}
 
 	if runtime.GOOS == "windows" {
@@ -197,6 +191,23 @@ func handleFrontend(name string, s scaffold.Stack) {
 	}
 
 	ShowSuccessBox(name, s.Name)
+}
+
+// buildFrontendArgs divide o comando do gerador (ex: "pnpm create vite@latest %s")
+// em binário + args, substituindo %s pelo nome do projeto. Partes sem %s
+// são repassadas intactas (sem Sprintf: verbos ausentes gerariam %!(EXTRA...)).
+func buildFrontendArgs(source, name string) (string, []string) {
+	templateParts := strings.Fields(source)
+	if len(templateParts) == 0 {
+		return "", nil
+	}
+	commandName := templateParts[0]
+
+	args := make([]string, 0, len(templateParts)-1)
+	for _, p := range templateParts[1:] {
+		args = append(args, strings.ReplaceAll(p, "%s", name))
+	}
+	return commandName, args
 }
 
 func promptInput(label, errMsg string, minLen int) string {
